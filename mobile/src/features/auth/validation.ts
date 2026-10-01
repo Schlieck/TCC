@@ -45,3 +45,22 @@ export function toRegisterRequest(values: RegisterFormValues): RegisterRequest {
     acceptedPrivacyTerms: values.acceptedPrivacyTerms,
   };
 }
+
+export const forgotPasswordFormSchema = z.object({
+  email: emailField,
+});
+
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordFormSchema>;
+
+export const resetPasswordFormSchema = z
+  .object({
+    code: z.string().regex(/^\d{6}$/, 'Digite os 6 números do código.'),
+    newPassword: newPasswordField,
+    confirmPassword: z.string(),
+  })
+  .refine((values) => values.newPassword === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'As senhas não conferem.',
+  });
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;

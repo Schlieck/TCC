@@ -40,3 +40,21 @@ export interface ChangePasswordRequest {
 export function changePassword(body: ChangePasswordRequest): Promise<AuthSession> {
   return httpClient.request('/me/password', authSessionSchema, { method: 'PUT', body });
 }
+
+/** Sempre responde igual, exista ou não uma conta com o e-mail. */
+export function requestPasswordReset(email: string): Promise<void> {
+  return httpClient.execute('/auth/password-reset/request', { method: 'POST', body: { email } });
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+export function resetPassword(body: ResetPasswordRequest): Promise<AuthSession> {
+  return httpClient.request('/auth/password-reset/confirm', authSessionSchema, {
+    method: 'POST',
+    body,
+  });
+}

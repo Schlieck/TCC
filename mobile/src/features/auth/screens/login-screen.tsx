@@ -62,12 +62,20 @@ export function LoginScreen() {
         <Button label="Entrar" onPress={() => void submit()} loading={formState.isSubmitting} />
       </View>
 
-      <LinkButton
-        label="Não possui login? Cadastre-se"
-        onPress={() => {
-          router.push('/register');
-        }}
-      />
+      <View style={styles.links}>
+        <LinkButton
+          label="Não possui login? Cadastre-se"
+          onPress={() => {
+            router.push('/register');
+          }}
+        />
+        <LinkButton
+          label="Esqueci a senha :("
+          onPress={() => {
+            router.push('/forgot-password');
+          }}
+        />
+      </View>
     </Screen>
   );
 }
@@ -82,5 +90,8 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.md,
+  },
+  links: {
+    gap: spacing.xs,
   },
 });
