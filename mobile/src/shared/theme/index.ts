@@ -11,6 +11,7 @@ export const colors = {
   activeTab: '#8AB4F8',
   danger: '#D93636',
   dangerText: '#FF8A80',
+  dangerOnPrimary: '#A11A12',
   onDanger: '#FFFFFF',
   success: '#8FD694',
   shadow: '#000000',

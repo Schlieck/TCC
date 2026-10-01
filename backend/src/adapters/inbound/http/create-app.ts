@@ -10,15 +10,24 @@ import type { RegisterUser } from '../../../application/use-cases/auth/register-
 import type { CheckHealth } from '../../../application/use-cases/health/check-health.js';
 import { AccountController } from './controllers/account-controller.js';
 import { AuthController } from './controllers/auth-controller.js';
+import {
+  CopingCardController,
+  type CopingCardUseCases,
+} from './controllers/coping-card-controller.js';
+import {
+  CopingCardGroupController,
+  type CopingCardGroupUseCases,
+} from './controllers/coping-card-group-controller.js';
 import { HealthController } from './controllers/health-controller.js';
 import { authenticate } from './middlewares/authenticate.js';
 import { errorHandler, routeNotFoundHandler } from './middlewares/error-handler.js';
 import { createRateLimiters } from './middlewares/rate-limit.js';
 import { accountRoutes } from './routes/account-routes.js';
 import { authRoutes } from './routes/auth-routes.js';
+import { copingCardRoutes } from './routes/coping-card-routes.js';
 import { healthRoutes } from './routes/health-routes.js';
 
-export interface HttpUseCases {
+export interface HttpUseCases extends CopingCardGroupUseCases, CopingCardUseCases {
   checkHealth: CheckHealth;
   registerUser: RegisterUser;
   logIn: LogIn;
@@ -52,6 +61,10 @@ export function createApp({
 
   app.use('/api', authenticate(useCases.authenticateRequest));
   app.use('/api', accountRoutes(new AccountController(useCases.getProfile)));
+  app.use(
+    '/api',
+    copingCardRoutes(new CopingCardGroupController(useCases), new CopingCardController(useCases)),
+  );
 
   app.use(routeNotFoundHandler);
   app.use(errorHandler(logger));

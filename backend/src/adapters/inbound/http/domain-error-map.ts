@@ -25,6 +25,15 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   INVALID_CREDENTIALS: 'E-mail ou senha incorretos.',
   INVALID_TOKEN: 'Sua sessão expirou. Faça login novamente.',
   USER_NOT_FOUND: 'Usuário não encontrado.',
+  INVALID_GROUP_NAME: 'Dê um nome ao grupo (até 60 caracteres).',
+  GROUP_NAME_TAKEN: 'Você já tem um grupo com esse nome.',
+  GROUP_NOT_EMPTY:
+    'Este grupo ainda tem cartões. Mova ou exclua os cartões antes de excluir o grupo.',
+  COPING_CARD_GROUP_NOT_FOUND: 'Grupo não encontrado.',
+  INVALID_CARD_NAME: 'Dê um nome ao cartão (até 100 caracteres).',
+  INVALID_CARD_DESCRIPTION: 'Escreva a descrição do cartão (até 1000 caracteres).',
+  INVALID_CARD_GROUP: 'Escolha um grupo válido.',
+  COPING_CARD_NOT_FOUND: 'Cartão não encontrado.',
 };
 
 export function fromDomainError(error: DomainError): HttpError {

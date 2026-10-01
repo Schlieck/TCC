@@ -9,7 +9,15 @@ export type DomainErrorCode =
   | 'EMAIL_ALREADY_IN_USE'
   | 'INVALID_CREDENTIALS'
   | 'INVALID_TOKEN'
-  | 'USER_NOT_FOUND';
+  | 'USER_NOT_FOUND'
+  | 'INVALID_GROUP_NAME'
+  | 'GROUP_NAME_TAKEN'
+  | 'GROUP_NOT_EMPTY'
+  | 'COPING_CARD_GROUP_NOT_FOUND'
+  | 'INVALID_CARD_NAME'
+  | 'INVALID_CARD_DESCRIPTION'
+  | 'INVALID_CARD_GROUP'
+  | 'COPING_CARD_NOT_FOUND';
 
 export type DomainErrorKind = 'validation' | 'unauthenticated' | 'not_found' | 'conflict';
 
