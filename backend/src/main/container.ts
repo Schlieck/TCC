@@ -5,6 +5,8 @@ import { createApp } from '../adapters/inbound/http/create-app.js';
 import { PostgresDatabaseHealth } from '../adapters/outbound/postgres/postgres-database-health.js';
 import { PostgresCopingCardGroupRepository } from '../adapters/outbound/postgres/repositories/postgres-coping-card-group-repository.js';
 import { PostgresCopingCardRepository } from '../adapters/outbound/postgres/repositories/postgres-coping-card-repository.js';
+import { PostgresEmotionRepository } from '../adapters/outbound/postgres/repositories/postgres-emotion-repository.js';
+import { PostgresThoughtRecordRepository } from '../adapters/outbound/postgres/repositories/postgres-thought-record-repository.js';
 import { PostgresUserRepository } from '../adapters/outbound/postgres/repositories/postgres-user-repository.js';
 import { BcryptPasswordHasher } from '../adapters/outbound/security/bcrypt-password-hasher.js';
 import { JoseTokenService } from '../adapters/outbound/security/jose-token-service.js';
@@ -23,6 +25,12 @@ import { ListCopingCards } from '../application/use-cases/coping-cards/list-copi
 import { RenameCopingCardGroup } from '../application/use-cases/coping-cards/rename-coping-card-group.js';
 import { UpdateCopingCard } from '../application/use-cases/coping-cards/update-coping-card.js';
 import { CheckHealth } from '../application/use-cases/health/check-health.js';
+import { CreateThoughtRecord } from '../application/use-cases/thought-records/create-thought-record.js';
+import { DeleteThoughtRecord } from '../application/use-cases/thought-records/delete-thought-record.js';
+import { GetThoughtRecord } from '../application/use-cases/thought-records/get-thought-record.js';
+import { ListEmotions } from '../application/use-cases/thought-records/list-emotions.js';
+import { ListThoughtRecords } from '../application/use-cases/thought-records/list-thought-records.js';
+import { UpdateThoughtRecord } from '../application/use-cases/thought-records/update-thought-record.js';
 import type { Config } from './config/env.js';
 
 export interface ContainerOptions {
@@ -38,6 +46,8 @@ export function createHttpApp({ config, logger, db }: ContainerOptions): Express
   const users = new PostgresUserRepository(db);
   const groups = new PostgresCopingCardGroupRepository(db);
   const cards = new PostgresCopingCardRepository(db);
+  const emotions = new PostgresEmotionRepository(db);
+  const records = new PostgresThoughtRecordRepository(db);
 
   return createApp({
     logger,
@@ -58,6 +68,12 @@ export function createHttpApp({ config, logger, db }: ContainerOptions): Express
       createCard: new CreateCopingCard(cards, groups),
       updateCard: new UpdateCopingCard(cards, groups),
       deleteCard: new DeleteCopingCard(cards),
+      listEmotions: new ListEmotions(emotions),
+      listRecords: new ListThoughtRecords(records),
+      getRecord: new GetThoughtRecord(records),
+      createRecord: new CreateThoughtRecord(records, emotions, clock),
+      updateRecord: new UpdateThoughtRecord(records, emotions, clock),
+      deleteRecord: new DeleteThoughtRecord(records),
     },
   });
 }

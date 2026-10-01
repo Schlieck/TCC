@@ -19,6 +19,10 @@ import {
   type CopingCardGroupUseCases,
 } from './controllers/coping-card-group-controller.js';
 import { HealthController } from './controllers/health-controller.js';
+import {
+  ThoughtRecordController,
+  type ThoughtRecordUseCases,
+} from './controllers/thought-record-controller.js';
 import { authenticate } from './middlewares/authenticate.js';
 import { errorHandler, routeNotFoundHandler } from './middlewares/error-handler.js';
 import { createRateLimiters } from './middlewares/rate-limit.js';
@@ -26,8 +30,10 @@ import { accountRoutes } from './routes/account-routes.js';
 import { authRoutes } from './routes/auth-routes.js';
 import { copingCardRoutes } from './routes/coping-card-routes.js';
 import { healthRoutes } from './routes/health-routes.js';
+import { thoughtRecordRoutes } from './routes/thought-record-routes.js';
 
-export interface HttpUseCases extends CopingCardGroupUseCases, CopingCardUseCases {
+export interface HttpUseCases
+  extends CopingCardGroupUseCases, CopingCardUseCases, ThoughtRecordUseCases {
   checkHealth: CheckHealth;
   registerUser: RegisterUser;
   logIn: LogIn;
@@ -65,6 +71,8 @@ export function createApp({
     '/api',
     copingCardRoutes(new CopingCardGroupController(useCases), new CopingCardController(useCases)),
   );
+
+  app.use('/api', thoughtRecordRoutes(new ThoughtRecordController(useCases)));
 
   app.use(routeNotFoundHandler);
   app.use(errorHandler(logger));

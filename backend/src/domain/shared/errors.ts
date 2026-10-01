@@ -17,7 +17,17 @@ export type DomainErrorCode =
   | 'INVALID_CARD_NAME'
   | 'INVALID_CARD_DESCRIPTION'
   | 'INVALID_CARD_GROUP'
-  | 'COPING_CARD_NOT_FOUND';
+  | 'COPING_CARD_NOT_FOUND'
+  | 'INVALID_TIME'
+  | 'INVALID_PERIOD'
+  | 'INVALID_RECORD_TITLE'
+  | 'INVALID_RECORD_DESCRIPTION'
+  | 'FUTURE_RECORD_DATE'
+  | 'EMOTIONS_REQUIRED'
+  | 'DUPLICATED_EMOTION'
+  | 'INVALID_INTENSITY'
+  | 'UNKNOWN_EMOTION'
+  | 'THOUGHT_RECORD_NOT_FOUND';
 
 export type DomainErrorKind = 'validation' | 'unauthenticated' | 'not_found' | 'conflict';
 

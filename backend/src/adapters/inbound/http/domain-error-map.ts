@@ -34,6 +34,16 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   INVALID_CARD_DESCRIPTION: 'Escreva a descrição do cartão (até 1000 caracteres).',
   INVALID_CARD_GROUP: 'Escolha um grupo válido.',
   COPING_CARD_NOT_FOUND: 'Cartão não encontrado.',
+  INVALID_TIME: 'Informe um horário válido (HH:MM).',
+  INVALID_PERIOD: 'O início do período não pode ser depois do fim.',
+  INVALID_RECORD_TITLE: 'Dê um título ao registro (até 120 caracteres).',
+  INVALID_RECORD_DESCRIPTION: 'Descreva o que aconteceu (até 5000 caracteres).',
+  FUTURE_RECORD_DATE: 'A data do registro não pode estar no futuro.',
+  EMOTIONS_REQUIRED: 'Adicione pelo menos um sentimento.',
+  DUPLICATED_EMOTION: 'Cada sentimento só pode aparecer uma vez.',
+  INVALID_INTENSITY: 'A intensidade vai de 0 a 100%.',
+  UNKNOWN_EMOTION: 'Sentimento desconhecido.',
+  THOUGHT_RECORD_NOT_FOUND: 'Registro não encontrado.',
 };
 
 export function fromDomainError(error: DomainError): HttpError {
