@@ -13,12 +13,14 @@ import { SaveReportModal } from '../components/save-report-modal';
 import { TrendTable } from '../components/trend-table';
 import { useReportPeriod } from '../hooks/use-report-period';
 import { useEmotionTrend } from '../hooks/use-reports';
+import { useShareReport } from '../hooks/use-share-report';
 
 export function ReportsScreen() {
   const selection = useReportPeriod();
   const trend = useEmotionTrend(selection.period);
   const [showTable, setShowTable] = useState(false);
   const [saving, setSaving] = useState(false);
+  const shareReport = useShareReport();
   const hasData = (trend.data?.series.length ?? 0) > 0;
 
   return (
@@ -89,13 +91,23 @@ export function ReportsScreen() {
         ) : null}
       </View>
 
-      {hasData ? (
-        <Button
-          label="Salvar relatório"
-          onPress={() => {
-            setSaving(true);
-          }}
-        />
+      {hasData && trend.data ? (
+        <View style={styles.actions}>
+          <Button
+            label="Salvar relatório"
+            onPress={() => {
+              setSaving(true);
+            }}
+          />
+          <Button
+            label="Compartilhar PDF"
+            accessibilityHint="Gera um PDF com o gráfico e a tabela para levar à consulta"
+            loading={shareReport.isPending}
+            onPress={() => {
+              shareReport.mutate({ trend: trend.data, periodLabel: selection.label });
+            }}
+          />
+        </View>
       ) : null}
 
       <SaveReportModal
@@ -127,6 +139,9 @@ const styles = StyleSheet.create({
   },
   intro: {
     gap: spacing.xs,
+  },
+  actions: {
+    gap: spacing.md,
   },
   savedButton: {
     alignSelf: 'center',

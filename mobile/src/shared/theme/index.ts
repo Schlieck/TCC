@@ -92,3 +92,24 @@ export const chart = {
   axis: '#5c5b57',
   text: '#c3c2b7',
 } as const;
+
+/** Mesmos tons, na variante para fundo claro: usada no PDF impresso/compartilhado. */
+export const emotionPrintColors: Record<string, string> = {
+  sadness: '#2a78d6',
+  anxiety: '#eb6834',
+  relief: '#1baf7a',
+  joy: '#eda100',
+  shame: '#e87ba4',
+  guilt: '#008300',
+  fear: '#4a3aa7',
+  anger: '#e34948',
+};
+
+/** Tinta e traços do PDF (papel branco). */
+export const print = {
+  ink: '#0b0b0b',
+  secondaryInk: '#52514e',
+  grid: '#e1e0d9',
+  axis: '#c3c2b7',
+  surface: '#ffffff',
+} as const;
