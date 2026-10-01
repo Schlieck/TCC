@@ -1,5 +1,5 @@
 import type { CalendarDate } from '../shared/calendar-date.js';
-import { ValidationError } from '../shared/errors.js';
+import { NotFoundError, ValidationError } from '../shared/errors.js';
 import type { Email } from './email.js';
 import type { Phone } from './phone.js';
 
@@ -34,4 +34,8 @@ export function assertValidBirthDate(birthDate: CalendarDate, today: CalendarDat
   if (birthDate >= today || birthDate < OLDEST_BIRTH_DATE) {
     throw new ValidationError('INVALID_BIRTH_DATE', 'Birth date must be in the past', 'birthDate');
   }
+}
+
+export function userNotFound(): NotFoundError {
+  return new NotFoundError('USER_NOT_FOUND', 'User not found');
 }

@@ -1,5 +1,8 @@
 import type { Knex } from 'knex';
-import type { UserRepository } from '../../../../application/ports/user-repository.js';
+import type {
+  ProfileChanges,
+  UserRepository,
+} from '../../../../application/ports/user-repository.js';
 import { parseCalendarDate } from '../../../../domain/shared/calendar-date.js';
 import { ConflictError } from '../../../../domain/shared/errors.js';
 import { parseEmail, type Email } from '../../../../domain/user/email.js';
@@ -35,18 +38,11 @@ export class PostgresUserRepository implements UserRepository {
       privacy_consent_at: user.privacyConsentAt,
     };
 
-    try {
-      const [inserted] = await this.users().insert(row).returning('*');
-      if (!inserted) {
-        throw new Error('Insert into users returned no row');
-      }
-      return toUser(inserted);
-    } catch (error) {
-      if (isUniqueViolation(error, 'users_email_unique')) {
-        throw new ConflictError('EMAIL_ALREADY_IN_USE', 'E-mail already registered');
-      }
-      throw error;
+    const [inserted] = await withEmailConflict(() => this.users().insert(row).returning('*'));
+    if (!inserted) {
+      throw new Error('Insert into users returned no row');
     }
+    return toUser(inserted);
   }
 
   async findById(id: UserId): Promise<User | null> {
@@ -59,8 +55,51 @@ export class PostgresUserRepository implements UserRepository {
     return row ? toUser(row) : null;
   }
 
+  async updateProfile(id: UserId, changes: ProfileChanges): Promise<User | null> {
+    const columns: Partial<Pick<UserRow, 'name' | 'email' | 'phone' | 'birth_date'>> = {
+      ...(changes.name === undefined ? {} : { name: changes.name }),
+      ...(changes.email === undefined ? {} : { email: changes.email }),
+      ...(changes.phone === undefined ? {} : { phone: changes.phone }),
+      ...(changes.birthDate === undefined ? {} : { birth_date: changes.birthDate }),
+    };
+    if (Object.keys(columns).length === 0) {
+      return this.findById(id);
+    }
+    const [row] = await withEmailConflict(() =>
+      this.users().where({ id }).update(columns).returning('*'),
+    );
+    return row ? toUser(row) : null;
+  }
+
+  async updatePassword(id: UserId, passwordHash: string): Promise<User | null> {
+    const [row] = await this.users()
+      .where({ id })
+      .update({
+        password_hash: passwordHash,
+        token_version: this.db.raw('token_version + 1'),
+      })
+      .returning('*');
+    return row ? toUser(row) : null;
+  }
+
+  async delete(id: UserId): Promise<boolean> {
+    const deleted = await this.users().where({ id }).delete();
+    return deleted > 0;
+  }
+
   private users() {
     return this.db<UserRow>('users');
+  }
+}
+
+async function withEmailConflict<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (isUniqueViolation(error, 'users_email_unique')) {
+      throw new ConflictError('EMAIL_ALREADY_IN_USE', 'E-mail already registered');
+    }
+    throw error;
   }
 }
 

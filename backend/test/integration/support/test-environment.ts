@@ -6,6 +6,7 @@ import { createDatabase } from '../../../src/adapters/outbound/postgres/connecti
 import { loadConfig, type Config } from '../../../src/main/config/env.js';
 import { createHttpApp } from '../../../src/main/container.js';
 import { registrationInput } from '../../support/builders.js';
+import { CapturingEmailSender } from '../../support/fakes.js';
 
 export function loadTestConfig(): Config {
   const config = loadConfig();
@@ -20,13 +21,15 @@ export function loadTestConfig(): Config {
 export interface TestEnvironment {
   app: Express;
   db: Knex;
+  emails: CapturingEmailSender;
 }
 
 export function createTestEnvironment(overrides: Partial<Config> = {}): TestEnvironment {
   const config = { ...loadTestConfig(), ...overrides };
   const db = createDatabase(config.database);
-  const app = createHttpApp({ config, logger: pino({ level: 'silent' }), db });
-  return { app, db };
+  const emails = new CapturingEmailSender();
+  const app = createHttpApp({ config, logger: pino({ level: 'silent' }), db, emailSender: emails });
+  return { app, db, emails };
 }
 
 /** Apaga os dados de todos os usuários (e, em cascata, tudo que pertence a eles). */

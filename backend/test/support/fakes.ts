@@ -1,3 +1,5 @@
+import type { CodeGenerator } from '../../src/application/ports/code-generator.js';
+import type { EmailSender, VerificationEmail } from '../../src/application/ports/email-sender.js';
 import type { Clock } from '../../src/application/ports/clock.js';
 import type { PasswordHasher } from '../../src/application/ports/password-hasher.js';
 import type { SessionClaims, TokenService } from '../../src/application/ports/token-service.js';
@@ -39,5 +41,31 @@ export class FixedClock implements Clock {
 
   advanceMinutes(minutes: number): void {
     this.current = new Date(this.current.getTime() + minutes * 60_000);
+  }
+}
+
+export class SequentialCodeGenerator implements CodeGenerator {
+  private next = 123456;
+
+  generate(): string {
+    return String(this.next++);
+  }
+}
+
+/** Guarda os e-mails "enviados" para o teste ler o código. */
+export class CapturingEmailSender implements EmailSender {
+  readonly sent: VerificationEmail[] = [];
+
+  sendVerificationCode(email: VerificationEmail): Promise<void> {
+    this.sent.push(email);
+    return Promise.resolve();
+  }
+
+  lastCode(): string {
+    const last = this.sent.at(-1);
+    if (!last) {
+      throw new Error('No e-mail was sent');
+    }
+    return last.code;
   }
 }

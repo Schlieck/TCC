@@ -11,6 +11,7 @@ const STATUS_BY_KIND: Record<DomainErrorKind, number> = {
   unauthenticated: 401,
   not_found: 404,
   conflict: 409,
+  too_many_attempts: 429,
 };
 
 const MESSAGES: Record<DomainErrorCode, string> = {
@@ -47,6 +48,10 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   PERIOD_TOO_LONG: 'Escolha um período de até 5 anos.',
   INVALID_REPORT_NAME: 'Dê um nome ao relatório (até 80 caracteres).',
   SAVED_REPORT_NOT_FOUND: 'Relatório não encontrado.',
+  WRONG_CURRENT_PASSWORD: 'A senha atual não confere.',
+  INVALID_VERIFICATION_CODE:
+    'Código inválido ou expirado. Confira o e-mail ou peça um novo código.',
+  TOO_MANY_CODE_ATTEMPTS: 'Muitas tentativas erradas. Peça um novo código.',
 };
 
 export function fromDomainError(error: DomainError): HttpError {

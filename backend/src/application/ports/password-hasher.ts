@@ -1,3 +1,4 @@
+/** Hash lento (bcrypt) para segredos: senhas e códigos de verificação. */
 export interface PasswordHasher {
   hash(plain: string): Promise<string>;
   /**

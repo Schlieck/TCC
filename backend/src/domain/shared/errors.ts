@@ -30,9 +30,13 @@ export type DomainErrorCode =
   | 'THOUGHT_RECORD_NOT_FOUND'
   | 'PERIOD_TOO_LONG'
   | 'INVALID_REPORT_NAME'
-  | 'SAVED_REPORT_NOT_FOUND';
+  | 'SAVED_REPORT_NOT_FOUND'
+  | 'WRONG_CURRENT_PASSWORD'
+  | 'INVALID_VERIFICATION_CODE'
+  | 'TOO_MANY_CODE_ATTEMPTS';
 
-export type DomainErrorKind = 'validation' | 'unauthenticated' | 'not_found' | 'conflict';
+export type DomainErrorKind =
+  'validation' | 'unauthenticated' | 'not_found' | 'conflict' | 'too_many_attempts';
 
 export abstract class DomainError extends Error {
   abstract readonly kind: DomainErrorKind;
@@ -68,4 +72,8 @@ export class NotFoundError extends DomainError {
 
 export class ConflictError extends DomainError {
   readonly kind = 'conflict';
+}
+
+export class TooManyAttemptsError extends DomainError {
+  readonly kind = 'too_many_attempts';
 }
