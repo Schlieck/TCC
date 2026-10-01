@@ -62,6 +62,12 @@ npm run dev
 
 Abra o Expo Go no celular e escaneie o QR code mostrado no terminal.
 
+Para entrar sem criar conta, rode `npm run seed` no backend e use `teste@shifty.dev` / `Shifty123` (há meses de registros para os gráficos).
+
+## Códigos por e-mail em desenvolvimento
+
+A exclusão de conta e o "Esqueci a senha" pedem um código de 6 números enviado por e-mail. Com `EMAIL_DRIVER=console` (padrão), nenhum e-mail é enviado: o código aparece no terminal do backend, numa linha como `[e-mail simulado] Código 123456 (account_deletion) para ...`. Para enviar e-mails de verdade, use `EMAIL_DRIVER=smtp` e preencha as variáveis `SMTP_*` no `backend/.env`.
+
 ## Por que não `localhost`?
 
 No Expo Go, o app roda **no celular**. Para o celular, `localhost` é o próprio celular, e não o seu computador. Por isso:
