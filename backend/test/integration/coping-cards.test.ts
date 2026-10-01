@@ -1,24 +1,12 @@
-import request from 'supertest';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { asUser } from './support/as-user.js';
 import { createTestEnvironment, resetDatabase, signUp } from './support/test-environment.js';
 
 const { app, db } = createTestEnvironment();
+const as = (token: string) => asUser(app, token);
 
 let ana: string;
 let bia: string;
-
-function as(token: string) {
-  return {
-    get: (path: string) => request(app).get(path).set('Authorization', `Bearer ${token}`),
-    post: (path: string, body: object) =>
-      request(app).post(path).set('Authorization', `Bearer ${token}`).send(body),
-    put: (path: string, body: object) =>
-      request(app).put(path).set('Authorization', `Bearer ${token}`).send(body),
-    patch: (path: string, body: object) =>
-      request(app).patch(path).set('Authorization', `Bearer ${token}`).send(body),
-    delete: (path: string) => request(app).delete(path).set('Authorization', `Bearer ${token}`),
-  };
-}
 
 async function createGroup(token: string, name: string): Promise<number> {
   const response = await as(token).post('/api/coping-card-groups', { name }).expect(201);
