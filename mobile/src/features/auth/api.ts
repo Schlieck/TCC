@@ -30,3 +30,13 @@ export function logIn(body: LogInRequest): Promise<AuthSession> {
 export function register(body: RegisterRequest): Promise<AuthSession> {
   return httpClient.request('/auth/register', authSessionSchema, { method: 'POST', body });
 }
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+/** A API devolve uma sessão nova: o token antigo deixa de valer. */
+export function changePassword(body: ChangePasswordRequest): Promise<AuthSession> {
+  return httpClient.request('/me/password', authSessionSchema, { method: 'PUT', body });
+}

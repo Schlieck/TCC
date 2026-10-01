@@ -1,34 +1,29 @@
 import { z } from 'zod';
-import { todayIso } from '@/shared/dates';
+import {
+  birthDateField,
+  emailField,
+  nameField,
+  newPasswordField,
+  phoneField,
+} from '@/shared/forms/fields';
 import { brDateToIso, onlyDigits } from '@/shared/forms/masks';
 import type { RegisterRequest } from './api';
 
-const email = z.string().trim().pipe(z.email('Informe um e-mail válido.'));
-
 export const logInFormSchema = z.object({
-  email,
+  email: emailField,
   password: z.string().min(1, 'Informe a senha.'),
 });
 
 export type LogInFormValues = z.infer<typeof logInFormSchema>;
 
-export const passwordSchema = z
-  .string()
-  .min(8, 'Use pelo menos 8 caracteres.')
-  .max(72, 'Use no máximo 72 caracteres.')
-  .regex(/\p{L}/u, 'Use pelo menos uma letra.')
-  .regex(/\d/, 'Use pelo menos um número.');
-
 export const registerFormSchema = z
   .object({
-    name: z.string().trim().min(2, 'Informe seu nome.').max(100, 'Use no máximo 100 caracteres.'),
-    email,
-    password: passwordSchema,
+    name: nameField,
+    email: emailField,
+    password: newPasswordField,
     confirmPassword: z.string(),
-    phone: z
-      .string()
-      .refine((value) => /^\d{10,11}$/.test(onlyDigits(value)), 'Informe o telefone com DDD.'),
-    birthDate: z.string().refine(isPastDate, 'Informe uma data válida no formato DD/MM/AAAA.'),
+    phone: phoneField,
+    birthDate: birthDateField,
     acceptedPrivacyTerms: z
       .boolean()
       .refine((accepted) => accepted, 'É preciso aceitar para criar a conta.'),
@@ -49,9 +44,4 @@ export function toRegisterRequest(values: RegisterFormValues): RegisterRequest {
     birthDate: brDateToIso(values.birthDate) ?? '',
     acceptedPrivacyTerms: values.acceptedPrivacyTerms,
   };
-}
-
-function isPastDate(value: string): boolean {
-  const iso = brDateToIso(value);
-  return iso !== null && iso >= '1900-01-01' && iso < todayIso();
 }
