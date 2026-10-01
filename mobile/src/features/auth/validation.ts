@@ -1,5 +1,5 @@
-import { format } from 'date-fns';
 import { z } from 'zod';
+import { todayIso } from '@/shared/dates';
 import { brDateToIso, onlyDigits } from '@/shared/forms/masks';
 import type { RegisterRequest } from './api';
 
@@ -53,5 +53,5 @@ export function toRegisterRequest(values: RegisterFormValues): RegisterRequest {
 
 function isPastDate(value: string): boolean {
   const iso = brDateToIso(value);
-  return iso !== null && iso >= '1900-01-01' && iso < format(new Date(), 'yyyy-MM-dd');
+  return iso !== null && iso >= '1900-01-01' && iso < todayIso();
 }

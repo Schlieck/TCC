@@ -45,3 +45,21 @@ export const fontSize = {
   title: 24,
   display: 40,
 } as const;
+
+/** Uma cor fixa por emoção (slug da API), usada nos selos e nas linhas do gráfico. */
+export const emotionColors: Record<string, string> = {
+  anxiety: '#F39C12',
+  sadness: '#5DADE2',
+  anger: '#E74C3C',
+  fear: '#AF7AC5',
+  guilt: '#95A5A6',
+  shame: '#F1948A',
+  joy: '#F7DC6F',
+  relief: '#58D68D',
+};
+
+export const fallbackEmotionColor = '#D5D8DC';
+
+export function emotionColor(slug: string | undefined): string {
+  return (slug === undefined ? undefined : emotionColors[slug]) ?? fallbackEmotionColor;
+}
