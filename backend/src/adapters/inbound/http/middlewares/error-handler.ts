@@ -1,5 +1,7 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import type { Logger } from 'pino';
+import { DomainError } from '../../../../domain/shared/errors.js';
+import { fromDomainError } from '../domain-error-map.js';
 import { HttpError, type HttpErrorDetail } from '../http-error.js';
 
 interface ErrorBody {
@@ -33,17 +35,24 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
 }
 
 function toErrorResponse(error: unknown): ErrorResponse {
+  if (error instanceof DomainError) {
+    return fromHttpError(fromDomainError(error));
+  }
   if (error instanceof HttpError) {
-    return {
-      status: error.status,
-      body: {
-        code: error.code,
-        message: error.message,
-        ...(error.details ? { details: error.details } : {}),
-      },
-    };
+    return fromHttpError(error);
   }
   return fromBodyParserError(error) ?? INTERNAL_ERROR;
+}
+
+function fromHttpError(error: HttpError): ErrorResponse {
+  return {
+    status: error.status,
+    body: {
+      code: error.code,
+      message: error.message,
+      ...(error.details ? { details: error.details } : {}),
+    },
+  };
 }
 
 function fromBodyParserError(error: unknown): ErrorResponse | undefined {
