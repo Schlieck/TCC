@@ -13,3 +13,13 @@ export const logInBodySchema = z.object({
   email: z.string().trim().min(1, 'Informe o e-mail.').max(254),
   password: z.string().min(1, 'Informe a senha.').max(200),
 });
+
+export const passwordResetRequestBodySchema = z.object({
+  email: z.string().trim().min(1, 'Informe o e-mail.').max(254),
+});
+
+export const passwordResetConfirmBodySchema = z.object({
+  email: z.string().trim().min(1, 'Informe o e-mail.').max(254),
+  code: z.string().regex(/^\d{6}$/, 'O código tem 6 números.'),
+  newPassword: z.string().min(8, 'A senha precisa ter pelo menos 8 caracteres.').max(72),
+});

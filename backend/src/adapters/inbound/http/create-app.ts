@@ -4,11 +4,9 @@ import helmet from 'helmet';
 import type { Logger } from 'pino';
 import { pinoHttp } from 'pino-http';
 import type { AuthenticateRequest } from '../../../application/use-cases/auth/authenticate-request.js';
-import type { LogIn } from '../../../application/use-cases/auth/log-in.js';
-import type { RegisterUser } from '../../../application/use-cases/auth/register-user.js';
 import type { CheckHealth } from '../../../application/use-cases/health/check-health.js';
 import { AccountController, type AccountUseCases } from './controllers/account-controller.js';
-import { AuthController } from './controllers/auth-controller.js';
+import { AuthController, type AuthUseCases } from './controllers/auth-controller.js';
 import {
   CopingCardController,
   type CopingCardUseCases,
@@ -36,13 +34,12 @@ import { thoughtRecordRoutes } from './routes/thought-record-routes.js';
 export interface HttpUseCases
   extends
     AccountUseCases,
+    AuthUseCases,
     CopingCardGroupUseCases,
     CopingCardUseCases,
     ThoughtRecordUseCases,
     ReportUseCases {
   checkHealth: CheckHealth;
-  registerUser: RegisterUser;
-  logIn: LogIn;
   authenticateRequest: AuthenticateRequest;
 }
 
@@ -68,7 +65,7 @@ export function createApp({
   app.use(requestLogger(logger));
 
   app.use('/api', healthRoutes(new HealthController(useCases.checkHealth)));
-  app.use('/api', authRoutes(new AuthController(useCases.registerUser, useCases.logIn), limits));
+  app.use('/api', authRoutes(new AuthController(useCases), limits));
 
   app.use('/api', authenticate(useCases.authenticateRequest));
   app.use('/api', accountRoutes(new AccountController(useCases), limits));

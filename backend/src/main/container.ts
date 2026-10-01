@@ -26,6 +26,8 @@ import { UpdateProfile } from '../application/use-cases/account/update-profile.j
 import { AuthenticateRequest } from '../application/use-cases/auth/authenticate-request.js';
 import { LogIn } from '../application/use-cases/auth/log-in.js';
 import { RegisterUser } from '../application/use-cases/auth/register-user.js';
+import { RequestPasswordReset } from '../application/use-cases/auth/request-password-reset.js';
+import { ResetPassword } from '../application/use-cases/auth/reset-password.js';
 import { CreateCopingCard } from '../application/use-cases/coping-cards/create-coping-card.js';
 import { CreateCopingCardGroup } from '../application/use-cases/coping-cards/create-coping-card-group.js';
 import { DeleteCopingCard } from '../application/use-cases/coping-cards/delete-coping-card.js';
@@ -84,6 +86,8 @@ export function createHttpApp({ config, logger, db, emailSender }: ContainerOpti
       checkHealth: new CheckHealth(new PostgresDatabaseHealth(db)),
       registerUser: new RegisterUser(users, hasher, tokens, clock),
       logIn: new LogIn(users, hasher, tokens),
+      requestPasswordReset: new RequestPasswordReset(users, verificationCodes, hasher),
+      resetPassword: new ResetPassword(users, verificationCodes, hasher, tokens),
       authenticateRequest: new AuthenticateRequest(tokens, users),
       getProfile: new GetProfile(users),
       updateProfile: new UpdateProfile(users, clock),

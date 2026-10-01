@@ -6,5 +6,7 @@ export function authRoutes(controller: AuthController, limits: RateLimiters): Ro
   const router = Router();
   router.post('/auth/register', limits.register, controller.register);
   router.post('/auth/login', limits.login, controller.login);
+  router.post('/auth/password-reset/request', limits.codeRequest, controller.requestPasswordReset);
+  router.post('/auth/password-reset/confirm', limits.codeConfirm, controller.resetPassword);
   return router;
 }
