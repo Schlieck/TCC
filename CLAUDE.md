@@ -62,7 +62,7 @@ src/main/          config (env validado com zod), container (DI manual), server,
 - Código, tabelas e colunas em inglês (snake_case no banco); textos de interface em pt-BR. Atualize `docs/glossario.md` ao criar um termo de domínio.
 - Sem `any`: use `unknown` e faça narrowing. Sem código morto nem comentários óbvios.
 - Testes: casos de uso com repositórios em memória (`backend/test/support/in-memory/`), rotas com supertest no banco `shifty_test`.
-- Commits pequenos em Conventional Commits. **Nunca faça push nem crie branch remota sem perguntar.**
+- Commits (ADR 7): pequenos, mensagem de uma linha com prefixo Conventional Commits (`feat(backend): ...`), sem corpo longo e **sem `Co-Authored-By` nem menção ao Claude**. **Nunca faça push nem crie branch remota sem perguntar.**
 
 ## Segurança e privacidade (LGPD: dados de saúde são sensíveis)
 

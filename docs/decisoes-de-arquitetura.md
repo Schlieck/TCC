@@ -25,3 +25,7 @@ O TypeScript 7 é o mais recente, mas o typescript-eslint ainda só suporta vers
 ## 6. Datas como texto `YYYY-MM-DD`
 
 Datas de calendário (data do registro, período do relatório) não têm fuso horário. O parser do `pg` para `DATE` foi desligado para que o valor chegue como texto e nunca seja convertido para meia-noite UTC.
+
+## 7. Commits curtos, com prefixo e sem coautoria de IA
+
+Princípio fundamental do repositório. Cada commit é pequeno (uma mudança coesa) e tem mensagem de uma linha no formato Conventional Commits: prefixo (`feat`, `fix`, `docs`, `test`, `refactor`, `chore`), escopo opcional (`backend`, `mobile`) e descrição curta no imperativo, em inglês — por exemplo `feat(backend): add thought records`. Sem corpo longo e **sem trailer `Co-Authored-By` nem qualquer menção ao Claude ou a outra IA**: a autoria do TCC é do aluno.
