@@ -47,7 +47,7 @@ describe('buildReportHtml', () => {
   it('tabulates the averages per bucket and for the whole period', () => {
     const document = html();
 
-    expect(document).toContain('<th>Ansiedade</th><th>Alegria</th>');
+    expect(document).toContain('<th class="value">Ansiedade</th><th class="value">Alegria</th>');
     expect(document).toContain('<td>01/09/2026 a 07/09/2026</td><td class="value">80%</td>');
     expect(document).toContain('<td>Média no período</td><td class="value">60%</td>');
   });

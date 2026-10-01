@@ -118,7 +118,7 @@ function renderChart(trend: EmotionTrend, series: EmotionTrendSeries[]): string 
 
 function renderTable(trend: EmotionTrend, series: EmotionTrendSeries[]): string {
   const header = `<tr><th>Período</th>${series
-    .map((entry) => `<th>${escapeHtml(entry.emotion.name)}</th>`)
+    .map((entry) => `<th class="value">${escapeHtml(entry.emotion.name)}</th>`)
     .join('')}</tr>`;
   const rows = trend.buckets
     .map(
