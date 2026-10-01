@@ -9,7 +9,10 @@ export function ThoughtRecordsMenuScreen() {
         {
           label: 'O que é e pra que serve?',
           onPress: () => {
-            router.navigate('/education');
+            router.navigate({
+              pathname: '/education/[topic]',
+              params: { topic: 'thought-records' },
+            });
           },
         },
         {

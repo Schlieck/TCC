@@ -9,7 +9,7 @@ export function CopingCardsMenuScreen() {
         {
           label: 'O que são?',
           onPress: () => {
-            router.navigate('/education');
+            router.navigate({ pathname: '/education/[topic]', params: { topic: 'coping-cards' } });
           },
         },
         {
