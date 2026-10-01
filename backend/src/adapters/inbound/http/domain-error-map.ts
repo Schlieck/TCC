@@ -44,6 +44,9 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   INVALID_INTENSITY: 'A intensidade vai de 0 a 100%.',
   UNKNOWN_EMOTION: 'Sentimento desconhecido.',
   THOUGHT_RECORD_NOT_FOUND: 'Registro não encontrado.',
+  PERIOD_TOO_LONG: 'Escolha um período de até 5 anos.',
+  INVALID_REPORT_NAME: 'Dê um nome ao relatório (até 80 caracteres).',
+  SAVED_REPORT_NOT_FOUND: 'Relatório não encontrado.',
 };
 
 export function fromDomainError(error: DomainError): HttpError {

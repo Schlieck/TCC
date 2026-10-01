@@ -27,7 +27,10 @@ export type DomainErrorCode =
   | 'DUPLICATED_EMOTION'
   | 'INVALID_INTENSITY'
   | 'UNKNOWN_EMOTION'
-  | 'THOUGHT_RECORD_NOT_FOUND';
+  | 'THOUGHT_RECORD_NOT_FOUND'
+  | 'PERIOD_TOO_LONG'
+  | 'INVALID_REPORT_NAME'
+  | 'SAVED_REPORT_NOT_FOUND';
 
 export type DomainErrorKind = 'validation' | 'unauthenticated' | 'not_found' | 'conflict';
 

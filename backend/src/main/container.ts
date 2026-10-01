@@ -5,7 +5,9 @@ import { createApp } from '../adapters/inbound/http/create-app.js';
 import { PostgresDatabaseHealth } from '../adapters/outbound/postgres/postgres-database-health.js';
 import { PostgresCopingCardGroupRepository } from '../adapters/outbound/postgres/repositories/postgres-coping-card-group-repository.js';
 import { PostgresCopingCardRepository } from '../adapters/outbound/postgres/repositories/postgres-coping-card-repository.js';
+import { PostgresEmotionHistory } from '../adapters/outbound/postgres/repositories/postgres-emotion-history.js';
 import { PostgresEmotionRepository } from '../adapters/outbound/postgres/repositories/postgres-emotion-repository.js';
+import { PostgresSavedReportRepository } from '../adapters/outbound/postgres/repositories/postgres-saved-report-repository.js';
 import { PostgresThoughtRecordRepository } from '../adapters/outbound/postgres/repositories/postgres-thought-record-repository.js';
 import { PostgresUserRepository } from '../adapters/outbound/postgres/repositories/postgres-user-repository.js';
 import { BcryptPasswordHasher } from '../adapters/outbound/security/bcrypt-password-hasher.js';
@@ -25,6 +27,11 @@ import { ListCopingCards } from '../application/use-cases/coping-cards/list-copi
 import { RenameCopingCardGroup } from '../application/use-cases/coping-cards/rename-coping-card-group.js';
 import { UpdateCopingCard } from '../application/use-cases/coping-cards/update-coping-card.js';
 import { CheckHealth } from '../application/use-cases/health/check-health.js';
+import { CreateSavedReport } from '../application/use-cases/reports/create-saved-report.js';
+import { DeleteSavedReport } from '../application/use-cases/reports/delete-saved-report.js';
+import { GetEmotionTrend } from '../application/use-cases/reports/get-emotion-trend.js';
+import { GetSavedReport } from '../application/use-cases/reports/get-saved-report.js';
+import { ListSavedReports } from '../application/use-cases/reports/list-saved-reports.js';
 import { CreateThoughtRecord } from '../application/use-cases/thought-records/create-thought-record.js';
 import { DeleteThoughtRecord } from '../application/use-cases/thought-records/delete-thought-record.js';
 import { GetThoughtRecord } from '../application/use-cases/thought-records/get-thought-record.js';
@@ -48,6 +55,7 @@ export function createHttpApp({ config, logger, db }: ContainerOptions): Express
   const cards = new PostgresCopingCardRepository(db);
   const emotions = new PostgresEmotionRepository(db);
   const records = new PostgresThoughtRecordRepository(db);
+  const savedReports = new PostgresSavedReportRepository(db);
 
   return createApp({
     logger,
@@ -74,6 +82,11 @@ export function createHttpApp({ config, logger, db }: ContainerOptions): Express
       createRecord: new CreateThoughtRecord(records, emotions, clock),
       updateRecord: new UpdateThoughtRecord(records, emotions, clock),
       deleteRecord: new DeleteThoughtRecord(records),
+      getEmotionTrend: new GetEmotionTrend(new PostgresEmotionHistory(db), emotions),
+      listSavedReports: new ListSavedReports(savedReports),
+      getSavedReport: new GetSavedReport(savedReports),
+      createSavedReport: new CreateSavedReport(savedReports),
+      deleteSavedReport: new DeleteSavedReport(savedReports),
     },
   });
 }

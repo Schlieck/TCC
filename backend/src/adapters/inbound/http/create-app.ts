@@ -19,6 +19,7 @@ import {
   type CopingCardGroupUseCases,
 } from './controllers/coping-card-group-controller.js';
 import { HealthController } from './controllers/health-controller.js';
+import { ReportController, type ReportUseCases } from './controllers/report-controller.js';
 import {
   ThoughtRecordController,
   type ThoughtRecordUseCases,
@@ -30,10 +31,11 @@ import { accountRoutes } from './routes/account-routes.js';
 import { authRoutes } from './routes/auth-routes.js';
 import { copingCardRoutes } from './routes/coping-card-routes.js';
 import { healthRoutes } from './routes/health-routes.js';
+import { reportRoutes } from './routes/report-routes.js';
 import { thoughtRecordRoutes } from './routes/thought-record-routes.js';
 
 export interface HttpUseCases
-  extends CopingCardGroupUseCases, CopingCardUseCases, ThoughtRecordUseCases {
+  extends CopingCardGroupUseCases, CopingCardUseCases, ThoughtRecordUseCases, ReportUseCases {
   checkHealth: CheckHealth;
   registerUser: RegisterUser;
   logIn: LogIn;
@@ -73,6 +75,7 @@ export function createApp({
   );
 
   app.use('/api', thoughtRecordRoutes(new ThoughtRecordController(useCases)));
+  app.use('/api', reportRoutes(new ReportController(useCases)));
 
   app.use(routeNotFoundHandler);
   app.use(errorHandler(logger));

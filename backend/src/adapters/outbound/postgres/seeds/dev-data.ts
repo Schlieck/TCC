@@ -97,6 +97,20 @@ export async function seed(knex: Knex): Promise<void> {
 
   await seedCopingCards(knex, user.id);
   await seedThoughtRecords(knex, user.id);
+  await knex('saved_reports').insert([
+    {
+      user_id: user.id,
+      name: 'Primeiros meses de tratamento',
+      start_date: calendarDateOf(daysBefore(DAYS_OF_HISTORY)),
+      end_date: calendarDateOf(daysBefore(DAYS_OF_HISTORY - 90)),
+    },
+    {
+      user_id: user.id,
+      name: 'Últimos 30 dias',
+      start_date: calendarDateOf(daysBefore(29)),
+      end_date: calendarDateOf(daysBefore(0)),
+    },
+  ]);
 }
 
 async function seedCopingCards(knex: Knex, userId: number): Promise<void> {
