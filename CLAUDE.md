@@ -43,6 +43,9 @@ src/main/          config (env validado com zod), container (DI manual), server,
 - Controllers finos: validam, chamam um caso de uso, mapeiam para HTTP. Erros de domínio tipados viram status HTTP em um único middleware de erro.
 - Toda consulta de dados do usuário filtra por `user_id` do token. Recurso de outro usuário responde 404.
 - Datas de calendário trafegam como `'YYYY-MM-DD'` (o parser do pg para `DATE` está desligado em `connection.ts`).
+- Migrations são autocontidas: não importam código do projeto (o Knex as carrega com `import()` nativo nos testes, e uma migration deve ser um retrato congelado do esquema).
+- Toda tabela tem `created_at`/`updated_at` e o trigger `<tabela>_set_updated_at` (função `set_updated_at()` da primeira migration).
+- Usuário de desenvolvimento do seed: `teste@shifty.dev` / `Shifty123`.
 
 ## Mobile
 
@@ -51,6 +54,8 @@ src/main/          config (env validado com zod), container (DI manual), server,
 - Tema (cores, espaçamento, fontes) só em `src/shared/theme`. Nada de cor literal nas telas.
 - Estado de servidor com TanStack Query; formulários com react-hook-form + zod (mensagens em pt-BR).
 - Alias `@/` → `src/`.
+- Rotas tipadas (`typedRoutes`): o `.expo/types` é gerado pelo `npm run dev`; rode-o uma vez após criar rotas para o typecheck validar os caminhos.
+- Sessão: o token fica no `expo-secure-store` e em memória (`shared/api/auth-session`); qualquer 401 com token encerra a sessão.
 
 ## Convenções
 

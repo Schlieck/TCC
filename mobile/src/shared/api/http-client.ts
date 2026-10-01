@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { apiConfig } from '../config/api-config';
+import { authSession } from './auth-session';
 import { ApiError, NetworkError, UnexpectedResponseError } from './errors';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -12,6 +13,7 @@ export interface RequestOptions {
 }
 
 const REQUEST_TIMEOUT_MS = 15_000;
+const UNAUTHORIZED = 401;
 
 const errorResponseSchema = z.object({
   error: z.object({
@@ -28,11 +30,12 @@ export function createHttpClient(baseUrl: string) {
       controller.abort();
     }, REQUEST_TIMEOUT_MS);
 
+    const token = authSession.token();
     let response: Response;
     try {
       response = await fetch(buildUrl(baseUrl, path, options.query), {
         method: options.method ?? 'GET',
-        headers: buildHeaders(options),
+        headers: buildHeaders(options, token),
         body: options.body === undefined ? undefined : JSON.stringify(options.body),
         signal: controller.signal,
       });
@@ -42,6 +45,9 @@ export function createHttpClient(baseUrl: string) {
       clearTimeout(timeout);
     }
 
+    if (response.status === UNAUTHORIZED && token) {
+      authSession.notifyUnauthorized();
+    }
     if (!response.ok) {
       throw await toApiError(response);
     }
@@ -71,9 +77,10 @@ function buildUrl(baseUrl: string, path: string, query: QueryParams = {}): strin
   return `${baseUrl}${path}${params.length > 0 ? `?${params.join('&')}` : ''}`;
 }
 
-function buildHeaders(options: RequestOptions): Record<string, string> {
+function buildHeaders(options: RequestOptions, token: string | null): Record<string, string> {
   return {
     Accept: 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
   };
 }

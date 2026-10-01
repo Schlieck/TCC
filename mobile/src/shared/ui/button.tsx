@@ -1,5 +1,6 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
-import { colors, fontSize, radius, spacing } from '@/shared/theme';
+import { ActivityIndicator, Pressable, StyleSheet, type ViewStyle } from 'react-native';
+import { colors, radius, spacing } from '@/shared/theme';
+import { AppText } from './app-text';
 
 type ButtonVariant = 'primary' | 'danger';
 
@@ -10,13 +11,13 @@ interface ButtonProps {
   loading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
+  accessibilityHint?: string;
 }
 
-const variantColors: Record<ButtonVariant, { background: string; pressed: string; text: string }> =
-  {
-    primary: { background: colors.primary, pressed: colors.primaryPressed, text: colors.onPrimary },
-    danger: { background: colors.danger, pressed: colors.danger, text: colors.onDanger },
-  };
+const palettes: Record<ButtonVariant, { background: string; pressed: string; text: string }> = {
+  primary: { background: colors.primary, pressed: colors.primaryPressed, text: colors.onPrimary },
+  danger: { background: colors.danger, pressed: colors.danger, text: colors.onDanger },
+};
 
 export function Button({
   label,
@@ -25,13 +26,16 @@ export function Button({
   loading = false,
   disabled = false,
   style,
+  accessibilityHint,
 }: ButtonProps) {
-  const palette = variantColors[variant];
+  const palette = palettes[variant];
   const inactive = disabled || loading;
 
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: inactive, busy: loading }}
       onPress={onPress}
       disabled={inactive}
@@ -45,7 +49,9 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={palette.text} />
       ) : (
-        <Text style={[styles.label, { color: palette.text }]}>{label}</Text>
+        <AppText variant="label" color={palette.text}>
+          {label}
+        </AppText>
       )}
     </Pressable>
   );
@@ -61,15 +67,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     shadowColor: colors.shadow,
     shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.5,
     shadowRadius: 0,
     elevation: 3,
   },
   inactive: {
     opacity: 0.6,
-  },
-  label: {
-    fontSize: fontSize.body,
-    fontWeight: '600',
   },
 });
