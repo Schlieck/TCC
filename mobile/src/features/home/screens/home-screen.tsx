@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { navigationStamp } from '@/shared/navigation';
 import { MenuScreen } from '@/shared/ui/menu-screen';
 
 export function HomeScreen() {
@@ -21,7 +22,10 @@ export function HomeScreen() {
         {
           label: 'Verificar o seu humor esse mês',
           onPress: () => {
-            router.navigate('/reports');
+            router.navigate({
+              pathname: '/reports',
+              params: { kind: 'month', at: navigationStamp() },
+            });
           },
         },
       ]}

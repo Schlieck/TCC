@@ -15,6 +15,7 @@ export const colors = {
   onDanger: '#FFFFFF',
   success: '#8FD694',
   shadow: '#000000',
+  overlay: 'rgba(0, 0, 0, 0.6)',
 } as const;
 
 export const fonts = {
@@ -46,20 +47,48 @@ export const fontSize = {
   display: 40,
 } as const;
 
-/** Uma cor fixa por emoção (slug da API), usada nos selos e nas linhas do gráfico. */
+/**
+ * Uma cor fixa por emoção (slug da API): a cor acompanha a emoção, nunca a posição na lista.
+ * Paleta categórica de referência (variante escura), validada para daltonismo e contraste
+ * >= 3:1 sobre `chart.surface`. A ordem abaixo é a ordem validada dos tons e a da legenda.
+ */
+export const EMOTION_ORDER = [
+  'sadness',
+  'anxiety',
+  'relief',
+  'joy',
+  'shame',
+  'guilt',
+  'fear',
+  'anger',
+] as const;
+
 export const emotionColors: Record<string, string> = {
-  anxiety: '#F39C12',
-  sadness: '#5DADE2',
-  anger: '#E74C3C',
-  fear: '#AF7AC5',
-  guilt: '#95A5A6',
-  shame: '#F1948A',
-  joy: '#F7DC6F',
-  relief: '#58D68D',
+  sadness: '#3987e5',
+  anxiety: '#d95926',
+  relief: '#199e70',
+  joy: '#c98500',
+  shame: '#d55181',
+  guilt: '#008300',
+  fear: '#9085e9',
+  anger: '#e66767',
 };
 
-export const fallbackEmotionColor = '#D5D8DC';
+export const fallbackEmotionColor = '#898781';
 
 export function emotionColor(slug: string | undefined): string {
   return (slug === undefined ? undefined : emotionColors[slug]) ?? fallbackEmotionColor;
 }
+
+export function emotionRank(slug: string): number {
+  const index = EMOTION_ORDER.findIndex((candidate) => candidate === slug);
+  return index === -1 ? EMOTION_ORDER.length : index;
+}
+
+/** Superfície e traços do gráfico: grade e eixos discretos, texto em tons neutros. */
+export const chart = {
+  surface: '#262626',
+  grid: '#3a3a38',
+  axis: '#5c5b57',
+  text: '#c3c2b7',
+} as const;
