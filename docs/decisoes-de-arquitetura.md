@@ -29,3 +29,11 @@ Datas de calendário (data do registro, período do relatório) não têm fuso h
 ## 7. Commits curtos, com prefixo e sem coautoria de IA
 
 Princípio fundamental do repositório. Cada commit é pequeno (uma mudança coesa) e tem mensagem de uma linha no formato Conventional Commits: prefixo (`feat`, `fix`, `docs`, `test`, `refactor`, `chore`), escopo opcional (`backend`, `mobile`) e descrição curta no imperativo, em inglês — por exemplo `feat(backend): add thought records`. Sem corpo longo e **sem trailer `Co-Authored-By` nem qualquer menção ao Claude ou a outra IA**: a autoria do TCC é do aluno.
+
+## 8. Relatórios calculados no domínio
+
+A média de intensidade por emoção é calculada por uma função pura (`buildEmotionTrend`), testada sem banco. O agrupamento depende só do tamanho do período: até 14 dias, por dia; até 92 dias, em blocos de 7 dias a partir do início; acima disso, por mês de calendário. Assim semana → dia, mês → semana e ano → mês, e o mesmo vale para intervalos personalizados e relatórios salvos, que guardam só nome e período (o gráfico é sempre recalculado com os registros atuais).
+
+## 9. Cores do gráfico
+
+Cada emoção tem uma cor fixa, que acompanha a emoção e não a posição na lista. A paleta é a categórica de referência de visualização de dados (oito tons em ordem validada para daltonismo) e foi verificada com contraste mínimo de 3:1 sobre o fundo escuro do gráfico (`#262626`). Diferente da Figura 13, o gráfico usa fundo escuro para seguir o tema do app; legenda, tooltip e a tabela "Ver os números em tabela" garantem que a leitura não dependa só da cor.
