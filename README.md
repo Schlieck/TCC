@@ -16,14 +16,24 @@ O relatório do TCC I está em [docs/relatorio-tcc1.pdf](docs/relatorio-tcc1.pdf
 
 ## Pré-requisitos
 
-- Node.js 22.13 ou superior (desenvolvido com Node 24)
-- PostgreSQL local (gerenciado pelo pgAdmin)
+- Git
+- Node.js 22.13 ou superior (desenvolvido com Node 24 LTS)
+- PostgreSQL 18 local; o instalador oficial já inclui o pgAdmin. Anote a senha do usuário `postgres` definida na instalação
 - Celular Android 9+ ou iPhone com iOS 16.4+, com o app **Expo Go** instalado
 - Computador e celular **na mesma rede Wi-Fi**
 
 ## Como rodar
 
-### 1. Banco de dados
+### 1. Baixar o projeto
+
+```bash
+git clone https://github.com/Schlieck/TCC.git
+cd TCC
+```
+
+Os arquivos `.env` não são versionados: em cada computador, crie os seus a partir dos `.env.example` (passos 3 e 4). O banco também é local, então contas e registros não passam de um computador para outro; o `npm run seed` gera os mesmos dados de teste em todos.
+
+### 2. Banco de dados
 
 No pgAdmin, crie dois bancos vazios com o seu usuário do Postgres como dono:
 
@@ -32,18 +42,21 @@ No pgAdmin, crie dois bancos vazios com o seu usuário do Postgres como dono:
 
 O Knex cria as tabelas, mas não cria os bancos.
 
-### 2. Backend
+### 3. Backend
 
 ```bash
 cd backend
 npm install
 cp .env.example .env      # preencha DB_USER, DB_PASSWORD e JWT_SECRET
 npm run migrate           # cria as tabelas no banco shifty
+npm run migrate:test      # cria as tabelas no banco shifty_test
 npm run seed              # opcional: usuário de teste e dados para os gráficos
 npm run dev
 ```
 
-Para gerar o `JWT_SECRET`:
+`DB_PORT` é `5432` quando há só um PostgreSQL instalado. Com duas versões lado a lado, a segunda costuma ficar na `5433`; a porta de cada uma está no pgAdmin, nas propriedades do servidor.
+
+Para gerar o `JWT_SECRET`, rode no terminal (em qualquer pasta) e cole a linha que aparecer depois de `JWT_SECRET=`, sem aspas:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
@@ -51,7 +64,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
 
 Ao subir, o servidor mostra no terminal a URL que o celular deve usar, por exemplo `EXPO_PUBLIC_API_URL=http://192.168.1.10:3333/api`.
 
-### 3. App
+### 4. App
 
 ```bash
 cd mobile
