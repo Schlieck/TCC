@@ -67,15 +67,19 @@ export function createApp({
   app.use('/api', healthRoutes(new HealthController(useCases.checkHealth)));
   app.use('/api', authRoutes(new AuthController(useCases), limits));
 
-  app.use('/api', authenticate(useCases.authenticateRequest));
-  app.use('/api', accountRoutes(new AccountController(useCases), limits));
+  // Cada roteador protege só os próprios prefixos: rota inexistente responde 404, não 401.
+  const auth = authenticate(useCases.authenticateRequest);
+  app.use('/api', accountRoutes(new AccountController(useCases), limits, auth));
   app.use(
     '/api',
-    copingCardRoutes(new CopingCardGroupController(useCases), new CopingCardController(useCases)),
+    copingCardRoutes(
+      new CopingCardGroupController(useCases),
+      new CopingCardController(useCases),
+      auth,
+    ),
   );
-
-  app.use('/api', thoughtRecordRoutes(new ThoughtRecordController(useCases)));
-  app.use('/api', reportRoutes(new ReportController(useCases)));
+  app.use('/api', thoughtRecordRoutes(new ThoughtRecordController(useCases), auth));
+  app.use('/api', reportRoutes(new ReportController(useCases), auth));
 
   app.use(routeNotFoundHandler);
   app.use(errorHandler(logger));

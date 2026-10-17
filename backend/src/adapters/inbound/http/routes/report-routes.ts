@@ -1,8 +1,9 @@
-import { Router } from 'express';
+import { Router, type RequestHandler } from 'express';
 import type { ReportController } from '../controllers/report-controller.js';
 
-export function reportRoutes(controller: ReportController): Router {
+export function reportRoutes(controller: ReportController, auth: RequestHandler): Router {
   const router = Router();
+  router.use(['/reports', '/saved-reports'], auth);
 
   router.get('/reports/emotion-trend', controller.trend);
 

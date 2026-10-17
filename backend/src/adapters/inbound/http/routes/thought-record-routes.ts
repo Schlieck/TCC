@@ -1,8 +1,12 @@
-import { Router } from 'express';
+import { Router, type RequestHandler } from 'express';
 import type { ThoughtRecordController } from '../controllers/thought-record-controller.js';
 
-export function thoughtRecordRoutes(controller: ThoughtRecordController): Router {
+export function thoughtRecordRoutes(
+  controller: ThoughtRecordController,
+  auth: RequestHandler,
+): Router {
   const router = Router();
+  router.use(['/emotions', '/thought-records'], auth);
 
   router.get('/emotions', controller.emotions);
 

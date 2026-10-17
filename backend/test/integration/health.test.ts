@@ -25,6 +25,13 @@ describe('GET /api/health', () => {
     });
   });
 
+  it('answers unknown API routes with 404 even without a token', async () => {
+    const response = await request(app).get('/api/does-not-exist');
+
+    expect(response.status).toBe(404);
+    expect(response.body.error.code).toBe('ROUTE_NOT_FOUND');
+  });
+
   it('rejects malformed JSON bodies', async () => {
     const response = await request(app)
       .post('/api/auth/login')
