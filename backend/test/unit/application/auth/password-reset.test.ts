@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LogIn } from '../../../../src/application/use-cases/auth/log-in.js';
-import { RegisterUser } from '../../../../src/application/use-cases/auth/register-user.js';
 import { RequestPasswordReset } from '../../../../src/application/use-cases/auth/request-password-reset.js';
 import { ResetPassword } from '../../../../src/application/use-cases/auth/reset-password.js';
 import { VerificationCodes } from '../../../../src/application/use-cases/verification/verification-codes.js';
-import { registrationInput } from '../../../support/builders.js';
+import { newUser } from '../../../support/builders.js';
 import {
   CapturingEmailSender,
   FakePasswordHasher,
@@ -35,7 +34,7 @@ describe('password reset', () => {
       emails,
       clock,
     );
-    await new RegisterUser(users, hasher, tokens, clock).execute(registrationInput());
+    await users.create(newUser());
     requestReset = new RequestPasswordReset(users, verificationCodes, hasher);
     resetPassword = new ResetPassword(users, verificationCodes, hasher, tokens);
   });

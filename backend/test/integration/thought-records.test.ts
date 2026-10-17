@@ -2,7 +2,8 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { asUser } from './support/as-user.js';
 import { createTestEnvironment, resetDatabase, signUp } from './support/test-environment.js';
 
-const { app, db } = createTestEnvironment();
+const env = createTestEnvironment();
+const { app, db } = env;
 const as = (token: string) => asUser(app, token);
 
 let ana: string;
@@ -30,8 +31,8 @@ async function createRecord(token: string, overrides: object = {}): Promise<numb
 
 beforeEach(async () => {
   await resetDatabase(db);
-  ana = await signUp(app, { email: 'ana@example.com' });
-  bia = await signUp(app, { email: 'bia@example.com' });
+  ana = await signUp(env, { email: 'ana@example.com' });
+  bia = await signUp(env, { email: 'bia@example.com' });
   const emotions = await as(ana).get('/api/emotions').expect(200);
   emotionIds = Object.fromEntries(
     emotions.body.map((emotion: { slug: string; id: number }) => [emotion.slug, emotion.id]),

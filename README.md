@@ -79,7 +79,7 @@ Para entrar sem criar conta, rode `npm run seed` no backend e use `teste@shifty.
 
 ## Códigos por e-mail em desenvolvimento
 
-A exclusão de conta e o "Esqueci a senha" pedem um código de 6 números enviado por e-mail. Com `EMAIL_DRIVER=console` (padrão), nenhum e-mail é enviado: o código aparece no terminal do backend, numa linha como `[e-mail simulado] Código 123456 (account_deletion) para ...`. Para enviar e-mails de verdade, use `EMAIL_DRIVER=smtp` e preencha as variáveis `SMTP_*` no `backend/.env`.
+O cadastro, a exclusão de conta e o "Esqueci a senha" pedem um código de 6 números enviado por e-mail. Com `EMAIL_DRIVER=console` (padrão), nenhum e-mail é enviado: o código aparece no terminal do backend, numa linha como `[e-mail simulado] Código 123456 (account_deletion) para ...`. Para enviar e-mails de verdade, use `EMAIL_DRIVER=smtp` e preencha as variáveis `SMTP_*` no `backend/.env`.
 
 ## Por que não `localhost`?
 

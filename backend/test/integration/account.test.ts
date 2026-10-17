@@ -2,16 +2,17 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { asUser } from './support/as-user.js';
 import { createTestEnvironment, resetDatabase, signUp } from './support/test-environment.js';
 
-const { app, db, emails } = createTestEnvironment();
+const env = createTestEnvironment();
+const { app, db, emails } = env;
 const as = (token: string) => asUser(app, token);
 
 let ana: string;
 
 beforeEach(async () => {
   await resetDatabase(db);
+  ana = await signUp(env, { email: 'ana@example.com' });
+  await signUp(env, { email: 'bia@example.com' });
   emails.sent.length = 0;
-  ana = await signUp(app, { email: 'ana@example.com' });
-  await signUp(app, { email: 'bia@example.com' });
 });
 
 afterAll(async () => {

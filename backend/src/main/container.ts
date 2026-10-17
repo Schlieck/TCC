@@ -9,6 +9,7 @@ import { PostgresCopingCardGroupRepository } from '../adapters/outbound/postgres
 import { PostgresCopingCardRepository } from '../adapters/outbound/postgres/repositories/postgres-coping-card-repository.js';
 import { PostgresEmotionHistory } from '../adapters/outbound/postgres/repositories/postgres-emotion-history.js';
 import { PostgresEmotionRepository } from '../adapters/outbound/postgres/repositories/postgres-emotion-repository.js';
+import { PostgresPendingRegistrationRepository } from '../adapters/outbound/postgres/repositories/postgres-pending-registration-repository.js';
 import { PostgresSavedReportRepository } from '../adapters/outbound/postgres/repositories/postgres-saved-report-repository.js';
 import { PostgresThoughtRecordRepository } from '../adapters/outbound/postgres/repositories/postgres-thought-record-repository.js';
 import { PostgresUserRepository } from '../adapters/outbound/postgres/repositories/postgres-user-repository.js';
@@ -24,9 +25,10 @@ import { GetProfile } from '../application/use-cases/account/get-profile.js';
 import { RequestAccountDeletion } from '../application/use-cases/account/request-account-deletion.js';
 import { UpdateProfile } from '../application/use-cases/account/update-profile.js';
 import { AuthenticateRequest } from '../application/use-cases/auth/authenticate-request.js';
+import { ConfirmRegistration } from '../application/use-cases/auth/confirm-registration.js';
 import { LogIn } from '../application/use-cases/auth/log-in.js';
-import { RegisterUser } from '../application/use-cases/auth/register-user.js';
 import { RequestPasswordReset } from '../application/use-cases/auth/request-password-reset.js';
+import { RequestRegistration } from '../application/use-cases/auth/request-registration.js';
 import { ResetPassword } from '../application/use-cases/auth/reset-password.js';
 import { CreateCopingCard } from '../application/use-cases/coping-cards/create-coping-card.js';
 import { CreateCopingCardGroup } from '../application/use-cases/coping-cards/create-coping-card-group.js';
@@ -70,11 +72,14 @@ export function createHttpApp({ config, logger, db, emailSender }: ContainerOpti
   const emotions = new PostgresEmotionRepository(db);
   const records = new PostgresThoughtRecordRepository(db);
   const savedReports = new PostgresSavedReportRepository(db);
+  const pendingRegistrations = new PostgresPendingRegistrationRepository(db);
+  const codeGenerator = new CryptoCodeGenerator();
+  const emails = emailSender ?? createEmailSender(config, logger);
   const verificationCodes = new VerificationCodes(
     new PostgresVerificationCodeRepository(db),
-    new CryptoCodeGenerator(),
+    codeGenerator,
     hasher,
-    emailSender ?? createEmailSender(config, logger),
+    emails,
     clock,
   );
 
@@ -84,7 +89,21 @@ export function createHttpApp({ config, logger, db, emailSender }: ContainerOpti
     rateLimitEnabled: config.environment !== 'test',
     useCases: {
       checkHealth: new CheckHealth(new PostgresDatabaseHealth(db)),
-      registerUser: new RegisterUser(users, hasher, tokens, clock),
+      requestRegistration: new RequestRegistration(
+        users,
+        pendingRegistrations,
+        codeGenerator,
+        hasher,
+        emails,
+        clock,
+      ),
+      confirmRegistration: new ConfirmRegistration(
+        users,
+        pendingRegistrations,
+        hasher,
+        tokens,
+        clock,
+      ),
       logIn: new LogIn(users, hasher, tokens),
       requestPasswordReset: new RequestPasswordReset(users, verificationCodes, hasher),
       resetPassword: new ResetPassword(users, verificationCodes, hasher, tokens),

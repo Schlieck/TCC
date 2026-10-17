@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { AuthenticateRequest } from '../../../../src/application/use-cases/auth/authenticate-request.js';
-import { RegisterUser } from '../../../../src/application/use-cases/auth/register-user.js';
 import { AuthenticationError } from '../../../../src/domain/shared/errors.js';
-import { registrationInput } from '../../../support/builders.js';
-import { FakePasswordHasher, FakeTokenService, FixedClock } from '../../../support/fakes.js';
+import { newUser } from '../../../support/builders.js';
+import { FakeTokenService } from '../../../support/fakes.js';
 import { InMemoryUserRepository } from '../../../support/in-memory/in-memory-user-repository.js';
 
 describe('AuthenticateRequest', () => {
@@ -14,13 +13,8 @@ describe('AuthenticateRequest', () => {
   beforeEach(async () => {
     users = new InMemoryUserRepository();
     const tokens = new FakeTokenService();
-    const session = await new RegisterUser(
-      users,
-      new FakePasswordHasher(),
-      tokens,
-      new FixedClock(),
-    ).execute(registrationInput());
-    token = session.token;
+    const user = await users.create(newUser());
+    token = await tokens.issue({ userId: user.id, tokenVersion: user.tokenVersion });
     authenticate = new AuthenticateRequest(tokens, users);
   });
 

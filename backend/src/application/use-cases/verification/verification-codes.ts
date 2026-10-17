@@ -1,10 +1,10 @@
-import { TooManyAttemptsError, ValidationError } from '../../../domain/shared/errors.js';
 import type { User } from '../../../domain/user/user.js';
 import {
   CODE_TTL_MINUTES,
   expirationFrom,
+  invalidCode,
   isUsable,
-  MAX_FAILED_ATTEMPTS,
+  wrongCodeError,
   type VerificationPurpose,
 } from '../../../domain/verification/verification-code.js';
 import type { Clock } from '../../ports/clock.js';
@@ -58,19 +58,9 @@ export class VerificationCodes {
 
     if (!(await this.hasher.verify(code, stored.codeHash))) {
       await this.codes.registerFailedAttempt(stored.id);
-      if (stored.failedAttempts + 1 >= MAX_FAILED_ATTEMPTS) {
-        throw new TooManyAttemptsError(
-          'TOO_MANY_CODE_ATTEMPTS',
-          'Too many wrong attempts; request a new code',
-        );
-      }
-      throw invalidCode();
+      throw wrongCodeError(stored);
     }
 
     await this.codes.consume(stored.id, now);
   }
-}
-
-function invalidCode(): ValidationError {
-  return new ValidationError('INVALID_VERIFICATION_CODE', 'Invalid or expired code', 'code');
 }

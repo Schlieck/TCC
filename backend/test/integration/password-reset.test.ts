@@ -3,14 +3,15 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { asUser } from './support/as-user.js';
 import { createTestEnvironment, resetDatabase, signUp } from './support/test-environment.js';
 
-const { app, db, emails } = createTestEnvironment();
+const env = createTestEnvironment();
+const { app, db, emails } = env;
 
 let oldToken: string;
 
 beforeEach(async () => {
   await resetDatabase(db);
+  oldToken = await signUp(env, { email: 'ana@example.com' });
   emails.sent.length = 0;
-  oldToken = await signUp(app, { email: 'ana@example.com' });
 });
 
 afterAll(async () => {

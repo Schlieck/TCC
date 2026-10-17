@@ -34,16 +34,19 @@ export function createTestEnvironment(overrides: Partial<Config> = {}): TestEnvi
 
 /** Apaga os dados de todos os usuários (e, em cascata, tudo que pertence a eles). */
 export async function resetDatabase(db: Knex): Promise<void> {
-  await db.raw('TRUNCATE users RESTART IDENTITY CASCADE');
+  await db.raw('TRUNCATE users, pending_registrations RESTART IDENTITY CASCADE');
 }
 
+/** Cadastro completo: pede o código, lê o e-mail capturado e confirma. */
 export async function signUp(
-  app: Express,
+  { app, emails }: Pick<TestEnvironment, 'app' | 'emails'>,
   overrides: Parameters<typeof registrationInput>[0] = {},
 ): Promise<string> {
+  const input = registrationInput(overrides);
+  await request(app).post('/api/auth/register').send(input).expect(202);
   const response = await request(app)
-    .post('/api/auth/register')
-    .send(registrationInput(overrides))
+    .post('/api/auth/register/confirm')
+    .send({ email: input.email, code: emails.lastCode() })
     .expect(201);
   const token: unknown = response.body.token;
   if (typeof token !== 'string') {

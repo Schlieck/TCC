@@ -23,3 +23,8 @@ export const passwordResetConfirmBodySchema = z.object({
   code: z.string().regex(/^\d{6}$/, 'O código tem 6 números.'),
   newPassword: z.string().min(8, 'A senha precisa ter pelo menos 8 caracteres.').max(72),
 });
+
+export const registrationConfirmBodySchema = z.object({
+  email: z.string().trim().min(1, 'Informe o e-mail.').max(254),
+  code: z.string().regex(/^\d{6}$/, 'O código tem 6 números.'),
+});

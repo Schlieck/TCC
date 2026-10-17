@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LogIn } from '../../../../src/application/use-cases/auth/log-in.js';
-import { RegisterUser } from '../../../../src/application/use-cases/auth/register-user.js';
-import { registrationInput } from '../../../support/builders.js';
-import { FakePasswordHasher, FakeTokenService, FixedClock } from '../../../support/fakes.js';
+import { newUser } from '../../../support/builders.js';
+import { FakePasswordHasher, FakeTokenService } from '../../../support/fakes.js';
 import { InMemoryUserRepository } from '../../../support/in-memory/in-memory-user-repository.js';
 
 describe('LogIn', () => {
@@ -12,7 +11,7 @@ describe('LogIn', () => {
     const users = new InMemoryUserRepository();
     const hasher = new FakePasswordHasher();
     const tokens = new FakeTokenService();
-    await new RegisterUser(users, hasher, tokens, new FixedClock()).execute(registrationInput());
+    await users.create(newUser());
     logIn = new LogIn(users, hasher, tokens);
   });
 

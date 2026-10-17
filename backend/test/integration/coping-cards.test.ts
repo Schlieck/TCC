@@ -2,7 +2,8 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { asUser } from './support/as-user.js';
 import { createTestEnvironment, resetDatabase, signUp } from './support/test-environment.js';
 
-const { app, db } = createTestEnvironment();
+const env = createTestEnvironment();
+const { app, db } = env;
 const as = (token: string) => asUser(app, token);
 
 let ana: string;
@@ -22,8 +23,8 @@ async function createCard(token: string, groupId: number, name = 'Respire'): Pro
 
 beforeEach(async () => {
   await resetDatabase(db);
-  ana = await signUp(app, { email: 'ana@example.com' });
-  bia = await signUp(app, { email: 'bia@example.com' });
+  ana = await signUp(env, { email: 'ana@example.com' });
+  bia = await signUp(env, { email: 'bia@example.com' });
 });
 
 afterAll(async () => {

@@ -1,5 +1,9 @@
 import type { CodeGenerator } from '../../src/application/ports/code-generator.js';
-import type { EmailSender, VerificationEmail } from '../../src/application/ports/email-sender.js';
+import type {
+  AccountExistsEmail,
+  EmailSender,
+  VerificationEmail,
+} from '../../src/application/ports/email-sender.js';
 import type { Clock } from '../../src/application/ports/clock.js';
 import type { PasswordHasher } from '../../src/application/ports/password-hasher.js';
 import type { SessionClaims, TokenService } from '../../src/application/ports/token-service.js';
@@ -55,9 +59,15 @@ export class SequentialCodeGenerator implements CodeGenerator {
 /** Guarda os e-mails "enviados" para o teste ler o código. */
 export class CapturingEmailSender implements EmailSender {
   readonly sent: VerificationEmail[] = [];
+  readonly notices: AccountExistsEmail[] = [];
 
   sendVerificationCode(email: VerificationEmail): Promise<void> {
     this.sent.push(email);
+    return Promise.resolve();
+  }
+
+  sendAccountExistsNotice(email: AccountExistsEmail): Promise<void> {
+    this.notices.push(email);
     return Promise.resolve();
   }
 

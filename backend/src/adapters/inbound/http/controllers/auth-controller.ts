@@ -1,18 +1,21 @@
 import type { Request, Response } from 'express';
+import type { ConfirmRegistration } from '../../../../application/use-cases/auth/confirm-registration.js';
 import type { LogIn } from '../../../../application/use-cases/auth/log-in.js';
-import type { RegisterUser } from '../../../../application/use-cases/auth/register-user.js';
 import type { RequestPasswordReset } from '../../../../application/use-cases/auth/request-password-reset.js';
+import type { RequestRegistration } from '../../../../application/use-cases/auth/request-registration.js';
 import type { ResetPassword } from '../../../../application/use-cases/auth/reset-password.js';
 import {
   logInBodySchema,
   passwordResetConfirmBodySchema,
   passwordResetRequestBodySchema,
   registerBodySchema,
+  registrationConfirmBodySchema,
 } from '../schemas/auth-schemas.js';
 import { parseRequest } from '../validation.js';
 
 export interface AuthUseCases {
-  registerUser: RegisterUser;
+  requestRegistration: RequestRegistration;
+  confirmRegistration: ConfirmRegistration;
   logIn: LogIn;
   requestPasswordReset: RequestPasswordReset;
   resetPassword: ResetPassword;
@@ -23,7 +26,13 @@ export class AuthController {
 
   register = async (request: Request, response: Response): Promise<void> => {
     const body = parseRequest(registerBodySchema, request.body);
-    response.status(201).json(await this.useCases.registerUser.execute(body));
+    await this.useCases.requestRegistration.execute(body);
+    response.status(202).end();
+  };
+
+  confirmRegistration = async (request: Request, response: Response): Promise<void> => {
+    const body = parseRequest(registrationConfirmBodySchema, request.body);
+    response.status(201).json(await this.useCases.confirmRegistration.execute(body));
   };
 
   login = async (request: Request, response: Response): Promise<void> => {

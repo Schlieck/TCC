@@ -37,3 +37,7 @@ A média de intensidade por emoção é calculada por uma função pura (`buildE
 ## 9. Cores do gráfico
 
 Cada emoção tem uma cor fixa, que acompanha a emoção e não a posição na lista. A paleta é a categórica de referência de visualização de dados (oito tons em ordem validada para daltonismo) e foi verificada com contraste mínimo de 3:1 sobre o fundo escuro do gráfico (`#262626`). Diferente da Figura 13, o gráfico usa fundo escuro para seguir o tema do app; legenda, tooltip e a tabela "Ver os números em tabela" garantem que a leitura não dependa só da cor.
+
+## 10. Cadastro confirmado por e-mail
+
+O cadastro não diz se um e-mail já tem conta: `POST /auth/register` sempre responde 202. Se o e-mail é novo, os dados validados (com o hash da senha) ficam em `pending_registrations` e um código é enviado; a conta só entra em `users` quando o código confere em `POST /auth/register/confirm`. Se o e-mail já tem conta, nada é gravado e o dono recebe um aviso. Os dois caminhos calculam os mesmos hashes, para o tempo de resposta não denunciar a diferença. Cadastros pendentes expiram com o código (15 minutos) e são apagados no próximo cadastro, para não guardar dados de quem não confirmou. Pelo mesmo motivo de proteger a conta, trocar o e-mail no perfil exige a senha atual.

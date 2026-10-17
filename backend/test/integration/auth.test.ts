@@ -3,10 +3,13 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { registrationInput } from '../support/builders.js';
 import { createTestEnvironment, resetDatabase, signUp } from './support/test-environment.js';
 
-const { app, db } = createTestEnvironment();
+const env = createTestEnvironment();
+const { app, db, emails } = env;
 
 beforeEach(async () => {
   await resetDatabase(db);
+  emails.sent.length = 0;
+  emails.notices.length = 0;
 });
 
 afterAll(async () => {
@@ -14,10 +17,17 @@ afterAll(async () => {
 });
 
 describe('POST /api/auth/register', () => {
-  it('creates the account and returns a session', async () => {
-    const response = await request(app)
+  it('creates the account only after the e-mailed code is confirmed', async () => {
+    await request(app)
       .post('/api/auth/register')
-      .send(registrationInput({ email: 'Ana@Example.com', phone: '(49) 99999-0000' }));
+      .send(registrationInput({ email: 'Ana@Example.com', phone: '(49) 99999-0000' }))
+      .expect(202);
+    expect(await db('users')).toHaveLength(0);
+    expect(emails.sent).toMatchObject([{ to: 'ana@example.com', purpose: 'registration' }]);
+
+    const response = await request(app)
+      .post('/api/auth/register/confirm')
+      .send({ email: 'ana@example.com', code: emails.lastCode() });
 
     expect(response.status).toBe(201);
     expect(typeof response.body.token).toBe('string');
@@ -28,10 +38,24 @@ describe('POST /api/auth/register', () => {
       phone: '49999990000',
       birthDate: '1998-04-12',
     });
+    expect(await db('pending_registrations')).toHaveLength(0);
+  });
+
+  it('refuses a wrong code', async () => {
+    await request(app).post('/api/auth/register').send(registrationInput()).expect(202);
+    const wrong = emails.lastCode() === '000000' ? '111111' : '000000';
+
+    const response = await request(app)
+      .post('/api/auth/register/confirm')
+      .send({ email: 'ana@example.com', code: wrong });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe('INVALID_VERIFICATION_CODE');
+    expect(await db('users')).toHaveLength(0);
   });
 
   it('stores a bcrypt hash, never the password', async () => {
-    await signUp(app);
+    await signUp(env);
 
     const [row] = await db('users')
       .where({ email: 'ana@example.com' })
@@ -40,15 +64,50 @@ describe('POST /api/auth/register', () => {
     expect(row?.password_hash).not.toContain('segredo123');
   });
 
-  it('refuses a duplicated e-mail with 409', async () => {
-    await signUp(app);
+  it('replaces the code of a repeated request and drops expired registrations', async () => {
+    await request(app).post('/api/auth/register').send(registrationInput()).expect(202);
+    const firstCode = emails.lastCode();
+    await db('pending_registrations').insert({
+      email: 'velho@example.com',
+      name: 'Cadastro Velho',
+      phone: '49999990000',
+      birth_date: '1990-01-01',
+      password_hash: 'x',
+      privacy_consent_at: new Date(),
+      code_hash: 'x',
+      expires_at: new Date(Date.now() - 60_000),
+    });
+
+    await request(app).post('/api/auth/register').send(registrationInput()).expect(202);
+
+    expect(await db('pending_registrations').pluck('email')).toEqual(['ana@example.com']);
+    if (firstCode !== emails.lastCode()) {
+      await request(app)
+        .post('/api/auth/register/confirm')
+        .send({ email: 'ana@example.com', code: firstCode })
+        .expect(400);
+    }
+    await request(app)
+      .post('/api/auth/register/confirm')
+      .send({ email: 'ana@example.com', code: emails.lastCode() })
+      .expect(201);
+  });
+
+  it('does not reveal that an e-mail already has an account', async () => {
+    await signUp(env);
+    emails.sent.length = 0;
 
     const response = await request(app)
       .post('/api/auth/register')
-      .send(registrationInput({ email: 'ANA@example.com' }));
+      .send(registrationInput({ email: 'ANA@example.com', password: 'outrasenha1' }));
 
-    expect(response.status).toBe(409);
-    expect(response.body.error.code).toBe('EMAIL_ALREADY_IN_USE');
+    expect(response.status).toBe(202);
+    expect(emails.sent).toEqual([]);
+    expect(emails.notices).toEqual([{ to: 'ana@example.com', name: 'Ana Souza' }]);
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'ana@example.com', password: 'segredo123' })
+      .expect(200);
   });
 
   it('lists invalid fields in Portuguese', async () => {
@@ -81,7 +140,7 @@ describe('POST /api/auth/register', () => {
 
 describe('POST /api/auth/login', () => {
   beforeEach(async () => {
-    await signUp(app);
+    await signUp(env);
   });
 
   it('returns a session for valid credentials', async () => {
@@ -108,7 +167,7 @@ describe('POST /api/auth/login', () => {
 
 describe('GET /api/me', () => {
   it('returns the profile of the authenticated user', async () => {
-    const token = await signUp(app);
+    const token = await signUp(env);
 
     const response = await request(app).get('/api/me').set('Authorization', `Bearer ${token}`);
 
@@ -125,7 +184,7 @@ describe('GET /api/me', () => {
   });
 
   it('rejects a tampered token', async () => {
-    const token = await signUp(app);
+    const token = await signUp(env);
 
     const response = await request(app)
       .get('/api/me')
@@ -136,7 +195,7 @@ describe('GET /api/me', () => {
   });
 
   it('rejects the token of an account that no longer exists', async () => {
-    const token = await signUp(app);
+    const token = await signUp(env);
     await resetDatabase(db);
 
     const response = await request(app).get('/api/me').set('Authorization', `Bearer ${token}`);

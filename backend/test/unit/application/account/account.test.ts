@@ -3,14 +3,13 @@ import { ChangePassword } from '../../../../src/application/use-cases/account/ch
 import { ConfirmAccountDeletion } from '../../../../src/application/use-cases/account/confirm-account-deletion.js';
 import { RequestAccountDeletion } from '../../../../src/application/use-cases/account/request-account-deletion.js';
 import { UpdateProfile } from '../../../../src/application/use-cases/account/update-profile.js';
-import { RegisterUser } from '../../../../src/application/use-cases/auth/register-user.js';
 import { VerificationCodes } from '../../../../src/application/use-cases/verification/verification-codes.js';
 import {
   ConflictError,
   TooManyAttemptsError,
   ValidationError,
 } from '../../../../src/domain/shared/errors.js';
-import { registrationInput } from '../../../support/builders.js';
+import { newUser } from '../../../support/builders.js';
 import {
   CapturingEmailSender,
   FakePasswordHasher,
@@ -42,9 +41,8 @@ describe('account management', () => {
       emails,
       clock,
     );
-    const register = new RegisterUser(users, hasher, tokens, clock);
-    await register.execute(registrationInput());
-    await register.execute(registrationInput({ email: 'bia@example.com' }));
+    await users.create(newUser());
+    await users.create(newUser('bia@example.com'));
   });
 
   describe('UpdateProfile', () => {
