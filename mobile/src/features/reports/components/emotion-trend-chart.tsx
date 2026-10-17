@@ -67,6 +67,8 @@ export function EmotionTrendChart({ trend, highlighted }: EmotionTrendChartProps
     return drawOrder.map((entry) => {
       const color = lineColor(entry.emotion, emphasis);
       const lastIndex = entry.values.findLastIndex((value) => value !== null);
+      // Em destaque, só a emoção escolhida leva rótulo: os das linhas em cinza se sobreporiam.
+      const directLabel = showDirectLabels && (emphasis === null || entry.emotion.id === emphasis);
       return {
         color,
         thickness: entry.emotion.id === emphasis ? 3 : 2,
@@ -77,7 +79,7 @@ export function EmotionTrendChart({ trend, highlighted }: EmotionTrendChartProps
           // A opção global da biblioteca não esconde o ponto quando o valor ausente vira NaN.
           hidePointer: value === null,
           label: index % labelEvery === 0 ? labels[index] : '',
-          ...(showDirectLabels && index === lastIndex
+          ...(directLabel && index === lastIndex
             ? {
                 dataPointText: entry.emotion.name,
                 textColor: chart.text,
