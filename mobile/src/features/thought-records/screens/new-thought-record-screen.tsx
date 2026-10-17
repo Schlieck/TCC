@@ -23,7 +23,8 @@ export function NewThoughtRecordScreen() {
       <ThoughtRecordForm
         initialValues={initialValues}
         onSaved={() => {
-          router.replace('/thought-records/list');
+          // Volta para a lista se ela já está na pilha, em vez de empilhar outra cópia.
+          router.dismissTo('/thought-records/list');
         }}
       />
     </Screen>

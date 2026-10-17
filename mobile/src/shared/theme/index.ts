@@ -91,6 +91,8 @@ export const chart = {
   grid: '#3a3a38',
   axis: '#5c5b57',
   text: '#c3c2b7',
+  /** Séries fora de destaque quando a pessoa destaca uma emoção na legenda. */
+  dimmed: '#4a4945',
 } as const;
 
 /** Mesmos tons, na variante para fundo claro: usada no PDF impresso/compartilhado. */

@@ -1,8 +1,8 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { errorMessage } from '@/shared/api/errors';
 import { colors, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Chip } from '@/shared/ui/chip';
+import { ErrorState } from '@/shared/ui/states';
 import type { EmotionIntensity } from '../api';
 import { useEmotions } from '../hooks/use-emotions';
 import { EmotionSliderRow } from './emotion-slider-row';
@@ -52,7 +52,7 @@ export function EmotionIntensityEditor({ value, onChange, error }: EmotionIntens
       {emotions.isPending ? (
         <ActivityIndicator color={colors.primary} />
       ) : emotions.isError ? (
-        <AppText color={colors.dangerText}>{errorMessage(emotions.error)}</AppText>
+        <ErrorState error={emotions.error} onRetry={() => void emotions.refetch()} />
       ) : (
         <View style={styles.chips}>
           {available.map((emotion) => (

@@ -10,7 +10,7 @@ export function HomeScreen() {
         {
           label: 'Registrar pensamento',
           onPress: () => {
-            router.navigate('/thought-records/new');
+            router.navigate('/thought-records/new', { withAnchor: true });
           },
         },
         {

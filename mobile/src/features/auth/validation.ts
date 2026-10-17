@@ -52,9 +52,15 @@ export const forgotPasswordFormSchema = z.object({
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordFormSchema>;
 
+const codeField = z.string().regex(/^\d{6}$/, 'Digite os 6 números do código.');
+
+export const registrationCodeFormSchema = z.object({ code: codeField });
+
+export type RegistrationCodeFormValues = z.infer<typeof registrationCodeFormSchema>;
+
 export const resetPasswordFormSchema = z
   .object({
-    code: z.string().regex(/^\d{6}$/, 'Digite os 6 números do código.'),
+    code: codeField,
     newPassword: newPasswordField,
     confirmPassword: z.string(),
   })

@@ -1,6 +1,6 @@
 import { TabStack } from '@/shared/ui/tab-stack';
 
-// Ao abrir um tópico a partir de outra aba, a grade de tópicos fica embaixo na pilha.
+// Ao abrir um tópico de outra aba com `withAnchor: true`, a grade de tópicos fica embaixo na pilha.
 export const unstable_settings = { initialRouteName: 'index' };
 
 export default function EducationLayout() {

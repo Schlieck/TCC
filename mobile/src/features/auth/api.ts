@@ -27,8 +27,21 @@ export function logIn(body: LogInRequest): Promise<AuthSession> {
   return httpClient.request('/auth/login', authSessionSchema, { method: 'POST', body });
 }
 
-export function register(body: RegisterRequest): Promise<AuthSession> {
-  return httpClient.request('/auth/register', authSessionSchema, { method: 'POST', body });
+/** Envia o código de confirmação; responde igual mesmo que o e-mail já tenha conta. */
+export function register(body: RegisterRequest): Promise<void> {
+  return httpClient.execute('/auth/register', { method: 'POST', body });
+}
+
+export interface ConfirmRegistrationRequest {
+  email: string;
+  code: string;
+}
+
+export function confirmRegistration(body: ConfirmRegistrationRequest): Promise<AuthSession> {
+  return httpClient.request('/auth/register/confirm', authSessionSchema, {
+    method: 'POST',
+    body,
+  });
 }
 
 export interface ChangePasswordRequest {

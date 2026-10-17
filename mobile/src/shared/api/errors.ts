@@ -18,7 +18,7 @@ export class ApiError extends Error {
 export class NetworkError extends Error {
   constructor() {
     super(
-      'Não foi possível conectar ao servidor. Verifique se o backend está rodando e se o celular está na mesma rede Wi-Fi.',
+      'Não foi possível conectar ao servidor. Verifique sua conexão com a internet e tente novamente.',
     );
     this.name = 'NetworkError';
   }

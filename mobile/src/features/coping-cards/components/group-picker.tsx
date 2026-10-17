@@ -76,23 +76,26 @@ export function GroupPicker({ value, onChange, error }: GroupPickerProps) {
 
       {draft !== null ? (
         <View style={styles.draft}>
-          <TextField
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="Nome do novo grupo"
-            error={draftError ?? undefined}
-            autoFocus
-            returnKeyType="done"
-            onSubmitEditing={() => void saveDraft()}
-          />
-          <View style={styles.draftActions}>
+          {/* Botão ao lado do campo: com o teclado aberto, ele continua visível. */}
+          <View style={styles.draftRow}>
+            <View style={styles.draftInput}>
+              <TextField
+                value={draft}
+                onChangeText={setDraft}
+                placeholder="Nome do novo grupo"
+                error={draftError ?? undefined}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={() => void saveDraft()}
+              />
+            </View>
             <Button
               label="Criar grupo"
               onPress={() => void saveDraft()}
               loading={createGroup.isPending}
             />
-            <LinkButton label="Cancelar" onPress={closeDraft} />
           </View>
+          <LinkButton label="Cancelar" onPress={closeDraft} />
         </View>
       ) : null}
 
@@ -117,9 +120,12 @@ const styles = StyleSheet.create({
   draft: {
     gap: spacing.sm,
   },
-  draftActions: {
+  draftRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  draftInput: {
+    flex: 1,
   },
 });

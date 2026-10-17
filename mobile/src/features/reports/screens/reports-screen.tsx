@@ -19,6 +19,7 @@ export function ReportsScreen() {
   const selection = useReportPeriod();
   const trend = useEmotionTrend(selection.period);
   const [showTable, setShowTable] = useState(false);
+  const [highlighted, setHighlighted] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const shareReport = useShareReport();
   const hasData = (trend.data?.series.length ?? 0) > 0;
@@ -65,7 +66,7 @@ export function ReportsScreen() {
               <Button
                 label="Fazer novo registro"
                 onPress={() => {
-                  router.navigate('/thought-records/new');
+                  router.navigate('/thought-records/new', { withAnchor: true });
                 }}
               />
             }
@@ -75,8 +76,14 @@ export function ReportsScreen() {
             <AppText variant="caption" color={chart.text}>
               Intensidade média de cada sentimento ({granularityLabel(trend.data.granularity)})
             </AppText>
-            <EmotionTrendChart trend={trend.data} />
-            <TrendLegend trend={trend.data} />
+            <EmotionTrendChart trend={trend.data} highlighted={highlighted} />
+            <TrendLegend
+              trend={trend.data}
+              highlighted={highlighted}
+              onToggle={(emotionId) => {
+                setHighlighted((current) => (current === emotionId ? null : emotionId));
+              }}
+            />
             <LinkButton
               label={showTable ? 'Ocultar tabela' : 'Ver os números em tabela'}
               onPress={() => {

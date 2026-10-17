@@ -9,14 +9,27 @@ import {
 import { brDateToIso, formatPhone, isoToBrDate, onlyDigits } from '@/shared/forms/masks';
 import type { ProfileChanges, UserProfile } from './api';
 
-export const profileFormSchema = z.object({
-  name: nameField,
-  email: emailField,
-  phone: phoneField,
-  birthDate: birthDateField,
-});
+/** Trocar o e-mail exige a senha atual, porque é o e-mail que recupera a conta. */
+export function profileFormSchema(currentEmail: string) {
+  return z
+    .object({
+      name: nameField,
+      email: emailField,
+      phone: phoneField,
+      birthDate: birthDateField,
+      currentPassword: z.string(),
+    })
+    .refine(
+      (values) => !emailChanged(values.email, currentEmail) || values.currentPassword.length > 0,
+      { path: ['currentPassword'], message: 'Informe sua senha atual para trocar o e-mail.' },
+    );
+}
 
-export type ProfileFormValues = z.infer<typeof profileFormSchema>;
+export type ProfileFormValues = z.infer<ReturnType<typeof profileFormSchema>>;
+
+export function emailChanged(email: string, currentEmail: string): boolean {
+  return email.trim().toLowerCase() !== currentEmail;
+}
 
 export function toProfileFormValues(profile: UserProfile): ProfileFormValues {
   return {
@@ -24,6 +37,7 @@ export function toProfileFormValues(profile: UserProfile): ProfileFormValues {
     email: profile.email,
     phone: formatPhone(profile.phone),
     birthDate: isoToBrDate(profile.birthDate),
+    currentPassword: '',
   };
 }
 
@@ -33,6 +47,7 @@ export function toProfileChanges(values: ProfileFormValues): ProfileChanges {
     email: values.email,
     phone: onlyDigits(values.phone),
     birthDate: brDateToIso(values.birthDate) ?? '',
+    ...(values.currentPassword ? { currentPassword: values.currentPassword } : {}),
   };
 }
 

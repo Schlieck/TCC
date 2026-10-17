@@ -20,6 +20,7 @@ export interface ProfileChanges {
   email: string;
   phone: string;
   birthDate: string;
+  currentPassword?: string;
 }
 
 export function updateProfile(changes: ProfileChanges): Promise<UserProfile> {

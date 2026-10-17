@@ -5,9 +5,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
 import { applyApiError } from '@/shared/forms/apply-api-error';
 import { FormTextField } from '@/shared/forms/form-text-field';
+import { useLeaveConfirmation } from '@/shared/forms/use-leave-confirmation';
 import { spacing } from '@/shared/theme';
 import { Button } from '@/shared/ui/button';
-import { confirm } from '@/shared/ui/confirm';
 import { FormError } from '@/shared/ui/form-error';
 import { LinkButton } from '@/shared/ui/link-button';
 import { useSaveCard } from '../hooks/use-coping-cards';
@@ -27,6 +27,12 @@ export function CopingCardForm({ cardId, initialValues, onSaved }: CopingCardFor
     resolver: zodResolver(copingCardFormSchema),
     defaultValues: initialValues,
   });
+  // Lido durante a renderização: o react-hook-form só atualiza isDirty quando ele é assinado.
+  const { isDirty, isSubmitting } = formState;
+  const { allowLeave } = useLeaveConfirmation(isDirty, {
+    title: 'Descartar cartão?',
+    message: 'O que você escreveu não será salvo.',
+  });
 
   const submit = handleSubmit(async ({ name, description, groupId }) => {
     if (groupId === null) {
@@ -35,25 +41,12 @@ export function CopingCardForm({ cardId, initialValues, onSaved }: CopingCardFor
     setFormError(null);
     try {
       await saveCard.mutateAsync({ name, description, groupId });
+      allowLeave();
       onSaved();
     } catch (error) {
       setFormError(applyApiError(error, setError, ['name', 'description', 'groupId']));
     }
   });
-
-  async function discard() {
-    const leave =
-      !formState.isDirty ||
-      (await confirm({
-        title: 'Descartar cartão?',
-        message: 'O que você escreveu não será salvo.',
-        confirmLabel: 'Descartar',
-        destructive: true,
-      }));
-    if (leave) {
-      router.back();
-    }
-  }
 
   return (
     <View style={styles.form}>
@@ -80,8 +73,13 @@ export function CopingCardForm({ cardId, initialValues, onSaved }: CopingCardFor
       />
 
       {formError ? <FormError message={formError} /> : null}
-      <Button label="Salvar" onPress={() => void submit()} loading={formState.isSubmitting} />
-      <LinkButton label="Descartar" onPress={() => void discard()} />
+      <Button label="Salvar" onPress={() => void submit()} loading={isSubmitting} />
+      <LinkButton
+        label="Descartar"
+        onPress={() => {
+          router.back();
+        }}
+      />
     </View>
   );
 }

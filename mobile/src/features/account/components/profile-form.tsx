@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
 import { applyApiError } from '@/shared/forms/apply-api-error';
 import { FormTextField } from '@/shared/forms/form-text-field';
@@ -12,22 +12,24 @@ import { FormError } from '@/shared/ui/form-error';
 import type { UserProfile } from '../api';
 import { useUpdateProfile } from '../hooks/use-profile';
 import {
+  emailChanged,
   profileFormSchema,
   toProfileChanges,
   toProfileFormValues,
   type ProfileFormValues,
 } from '../validation';
 
-const API_FIELDS = ['name', 'email', 'phone', 'birthDate'] as const;
+const API_FIELDS = ['name', 'email', 'phone', 'birthDate', 'currentPassword'] as const;
 
 export function ProfileForm({ profile }: { profile: UserProfile }) {
   const updateProfile = useUpdateProfile();
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const { control, handleSubmit, setError, reset, formState } = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
+    resolver: zodResolver(profileFormSchema(profile.email)),
     defaultValues: toProfileFormValues(profile),
   });
+  const email = useWatch({ control, name: 'email' });
 
   const submit = handleSubmit(async (values) => {
     setFormError(null);
@@ -47,11 +49,20 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
       <FormTextField
         control={control}
         name="email"
-        label="Email:"
+        label="E-mail:"
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
       />
+      {emailChanged(email, profile.email) ? (
+        <FormTextField
+          control={control}
+          name="currentPassword"
+          label="Senha atual (para trocar o e-mail):"
+          secureTextEntry
+          autoComplete="current-password"
+        />
+      ) : null}
       <FormTextField
         control={control}
         name="phone"
@@ -62,7 +73,7 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
       <FormTextField
         control={control}
         name="birthDate"
-        label="Data de aniversário:"
+        label="Data de nascimento:"
         keyboardType="number-pad"
         placeholder="DD/MM/AAAA"
         format={formatDateInput}

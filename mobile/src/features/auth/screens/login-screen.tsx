@@ -42,7 +42,7 @@ export function LoginScreen() {
         <FormTextField
           control={control}
           name="email"
-          placeholder="Email"
+          placeholder="E-mail"
           keyboardType="email-address"
           autoCapitalize="none"
           autoComplete="email"

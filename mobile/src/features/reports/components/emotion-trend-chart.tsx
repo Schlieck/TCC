@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { chart, colors, emotionColor, fonts, radius, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
@@ -15,15 +15,43 @@ const MAX_DIRECT_LABELS = 4;
 /** Margens da tela e do cartão que envolvem o gráfico. */
 const HORIZONTAL_CHROME = spacing.md * 4;
 
+// A biblioteca passa a mostrar casas decimais ("100.0") quando alguma média é fracionária.
+function formatYLabel(label: string): string {
+  return String(Math.round(Number(label)));
+}
+
+/** Com uma emoção em destaque, as outras linhas ficam em cinza. */
+function lineColor(emotion: { id: number; slug: string }, emphasis: number | null): string {
+  return emphasis === null || emotion.id === emphasis ? emotionColor(emotion.slug) : chart.dimmed;
+}
+
 interface PointerProps {
   pointerIndex: number;
   pointerX: number;
 }
 
-export function EmotionTrendChart({ trend }: { trend: EmotionTrend }) {
+interface EmotionTrendChartProps {
+  trend: EmotionTrend;
+  /** Emoção destacada na legenda; as outras linhas ficam em cinza. */
+  highlighted: number | null;
+}
+
+export function EmotionTrendChart({ trend, highlighted }: EmotionTrendChartProps) {
   const { width: windowWidth } = useWindowDimensions();
   const [selection, setSelection] = useState<{ trend: EmotionTrend; index: number } | null>(null);
   const series = useMemo(() => sortSeries(trend.series), [trend]);
+  // Com oito emoções há cores parecidas; destacar uma resolve a leitura sem trocar a paleta.
+  const emphasis = series.some((entry) => entry.emotion.id === highlighted) ? highlighted : null;
+  const drawOrder = useMemo(
+    () =>
+      emphasis === null
+        ? series
+        : [
+            ...series.filter((entry) => entry.emotion.id !== emphasis),
+            ...series.filter((entry) => entry.emotion.id === emphasis),
+          ],
+    [series, emphasis],
+  );
   const labels = useMemo(() => {
     const spansYears = trend.period.from.slice(0, 4) !== trend.period.to.slice(0, 4);
     return trend.buckets.map((bucket) => bucketLabel(trend.granularity, bucket, spansYears));
@@ -36,12 +64,12 @@ export function EmotionTrendChart({ trend }: { trend: EmotionTrend }) {
   const dataSet = useMemo(() => {
     const labelEvery = Math.max(1, Math.ceil(labels.length / MAX_X_LABELS));
     const showDirectLabels = series.length <= MAX_DIRECT_LABELS;
-    return series.map((entry) => {
-      const color = emotionColor(entry.emotion.slug);
+    return drawOrder.map((entry) => {
+      const color = lineColor(entry.emotion, emphasis);
       const lastIndex = entry.values.findLastIndex((value) => value !== null);
       return {
         color,
-        thickness: 2,
+        thickness: entry.emotion.id === emphasis ? 3 : 2,
         dataPointsColor: color,
         dataPointsRadius: 4,
         data: entry.values.map((value, index) => ({
@@ -61,17 +89,17 @@ export function EmotionTrendChart({ trend }: { trend: EmotionTrend }) {
         })),
       };
     });
-  }, [series, labels]);
+  }, [drawOrder, series.length, labels, emphasis]);
 
   const pointerConfig = useMemo(
     () => ({
       pointerStripColor: chart.axis,
       pointerStripWidth: 1,
-      pointerColorsForDataSet: series.map((entry) => emotionColor(entry.emotion.slug)),
+      pointerColorsForDataSet: drawOrder.map((entry) => lineColor(entry.emotion, emphasis)),
       radius: 5,
       persistPointer: true,
     }),
-    [series],
+    [drawOrder, emphasis],
   );
 
   const selectedIndex = selection?.trend === trend ? selection.index : null;
@@ -92,6 +120,7 @@ export function EmotionTrendChart({ trend }: { trend: EmotionTrend }) {
           maxValue={100}
           noOfSections={4}
           yAxisLabelSuffix="%"
+          formatYLabel={formatYLabel}
           yAxisLabelWidth={Y_AXIS_WIDTH}
           yAxisThickness={0}
           xAxisColor={chart.axis}
@@ -141,19 +170,51 @@ export function EmotionTrendChart({ trend }: { trend: EmotionTrend }) {
   );
 }
 
-export function TrendLegend({ trend }: { trend: EmotionTrend }) {
+interface TrendLegendProps {
+  trend: EmotionTrend;
+  highlighted: number | null;
+  onToggle: (emotionId: number) => void;
+}
+
+export function TrendLegend({ trend, highlighted, onToggle }: TrendLegendProps) {
+  const series = sortSeries(trend.series);
+  const emphasis = series.some((entry) => entry.emotion.id === highlighted) ? highlighted : null;
+
   return (
-    <View style={styles.legend}>
-      {sortSeries(trend.series).map((entry) => (
-        <View key={entry.emotion.id} style={styles.legendItem}>
-          <View
-            style={[styles.legendLine, { backgroundColor: emotionColor(entry.emotion.slug) }]}
-          />
-          <AppText variant="caption" color={colors.text}>
-            {entry.emotion.name}
-          </AppText>
-        </View>
-      ))}
+    <View style={styles.legendBlock}>
+      <View style={styles.legend}>
+        {series.map((entry) => (
+          <Pressable
+            key={entry.emotion.id}
+            accessibilityRole="button"
+            accessibilityState={{ selected: entry.emotion.id === emphasis }}
+            accessibilityHint="Destaca esta emoção no gráfico"
+            hitSlop={spacing.xs}
+            onPress={() => {
+              onToggle(entry.emotion.id);
+            }}
+            style={styles.legendItem}
+          >
+            <View
+              style={[styles.legendLine, { backgroundColor: lineColor(entry.emotion, emphasis) }]}
+            />
+            <AppText
+              variant="caption"
+              color={emphasis === null || entry.emotion.id === emphasis ? colors.text : chart.text}
+              style={entry.emotion.id === emphasis ? styles.legendSelected : undefined}
+            >
+              {entry.emotion.name}
+            </AppText>
+          </Pressable>
+        ))}
+      </View>
+      {series.length > 1 ? (
+        <AppText variant="caption">
+          {emphasis === null
+            ? 'Toque numa emoção da legenda para destacá-la.'
+            : 'Toque de novo na emoção para ver todas.'}
+        </AppText>
+      ) : null}
     </View>
   );
 }
@@ -194,6 +255,9 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
+  legendBlock: {
+    gap: spacing.sm,
+  },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -208,5 +272,8 @@ const styles = StyleSheet.create({
     width: 16,
     height: 3,
     borderRadius: 2,
+  },
+  legendSelected: {
+    fontFamily: fonts.bold,
   },
 });

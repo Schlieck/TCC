@@ -12,7 +12,8 @@ export function NewCopingCardScreen() {
       <CopingCardForm
         initialValues={{ name: '', description: '', groupId: null }}
         onSaved={() => {
-          router.replace('/coping-cards/list');
+          // Volta para a lista se ela já está na pilha, em vez de empilhar outra cópia.
+          router.dismissTo('/coping-cards/list');
         }}
       />
     </Screen>
