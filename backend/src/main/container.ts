@@ -90,7 +90,7 @@ export function createHttpApp({ config, logger, db, emailSender }: ContainerOpti
       resetPassword: new ResetPassword(users, verificationCodes, hasher, tokens),
       authenticateRequest: new AuthenticateRequest(tokens, users),
       getProfile: new GetProfile(users),
-      updateProfile: new UpdateProfile(users, clock),
+      updateProfile: new UpdateProfile(users, hasher, clock),
       changePassword: new ChangePassword(users, hasher, tokens),
       requestAccountDeletion: new RequestAccountDeletion(users, verificationCodes),
       confirmAccountDeletion: new ConfirmAccountDeletion(users, verificationCodes),

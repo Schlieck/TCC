@@ -49,7 +49,7 @@ describe('account management', () => {
 
   describe('UpdateProfile', () => {
     it('updates only the given fields, normalized', async () => {
-      const profile = await new UpdateProfile(users, clock).execute({
+      const profile = await new UpdateProfile(users, hasher, clock).execute({
         userId: 1,
         name: ' Ana  Lima ',
         phone: '(49) 3333-4444',
@@ -62,18 +62,42 @@ describe('account management', () => {
       });
     });
 
-    it("refuses another account's e-mail but accepts its own", async () => {
-      const update = new UpdateProfile(users, clock);
+    it('requires the current password to change the e-mail', async () => {
+      const update = new UpdateProfile(users, hasher, clock);
 
-      await expect(update.execute({ userId: 1, email: 'BIA@example.com' })).rejects.toThrow(
-        ConflictError,
-      );
+      await expect(
+        update.execute({ userId: 1, email: 'ana.lima@example.com' }),
+      ).rejects.toMatchObject({ code: 'CURRENT_PASSWORD_REQUIRED', field: 'currentPassword' });
+      await expect(
+        update.execute({ userId: 1, email: 'ana.lima@example.com', currentPassword: 'errada123' }),
+      ).rejects.toMatchObject({ code: 'WRONG_CURRENT_PASSWORD' });
+
+      const profile = await update.execute({
+        userId: 1,
+        email: 'Ana.Lima@example.com',
+        currentPassword: 'segredo123',
+      });
+      expect(profile.email).toBe('ana.lima@example.com');
+    });
+
+    it("refuses another account's e-mail but accepts its own without a password", async () => {
+      const update = new UpdateProfile(users, hasher, clock);
+
+      await expect(
+        update.execute({ userId: 1, email: 'BIA@example.com', currentPassword: 'segredo123' }),
+      ).rejects.toThrow(ConflictError);
       await expect(update.execute({ userId: 1, email: 'ana@example.com' })).resolves.toBeDefined();
+    });
+
+    it('checks the password before telling whether the e-mail is taken', async () => {
+      await expect(
+        new UpdateProfile(users, hasher, clock).execute({ userId: 1, email: 'bia@example.com' }),
+      ).rejects.toMatchObject({ code: 'CURRENT_PASSWORD_REQUIRED' });
     });
 
     it('validates the birth date', async () => {
       await expect(
-        new UpdateProfile(users, clock).execute({ userId: 1, birthDate: '2030-01-01' }),
+        new UpdateProfile(users, hasher, clock).execute({ userId: 1, birthDate: '2030-01-01' }),
       ).rejects.toMatchObject({ code: 'INVALID_BIRTH_DATE' });
     });
   });

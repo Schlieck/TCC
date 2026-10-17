@@ -10,8 +10,8 @@ export function accountRoutes(
   const router = Router();
   router.use('/me', auth);
   router.get('/me', controller.show);
-  router.patch('/me', controller.update);
-  router.put('/me/password', limits.passwordChange, controller.changePassword);
+  router.patch('/me', limits.passwordCheck, controller.update);
+  router.put('/me/password', limits.passwordCheck, controller.changePassword);
   router.post('/me/deletion-request', limits.codeRequest, controller.requestDeletion);
   router.post('/me/deletion', limits.codeConfirm, controller.confirmDeletion);
   return router;

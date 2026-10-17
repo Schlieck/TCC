@@ -6,6 +6,7 @@ export const updateProfileBodySchema = z
     email: z.string().trim().max(254).pipe(z.email('Informe um e-mail válido.')),
     phone: z.string().trim().max(20),
     birthDate: z.iso.date('Use o formato AAAA-MM-DD.'),
+    currentPassword: z.string().max(200),
   })
   .partial();
 

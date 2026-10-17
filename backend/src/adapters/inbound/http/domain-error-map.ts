@@ -49,6 +49,7 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   INVALID_REPORT_NAME: 'Dê um nome ao relatório (até 80 caracteres).',
   SAVED_REPORT_NOT_FOUND: 'Relatório não encontrado.',
   WRONG_CURRENT_PASSWORD: 'A senha atual não confere.',
+  CURRENT_PASSWORD_REQUIRED: 'Informe sua senha atual para trocar o e-mail.',
   INVALID_VERIFICATION_CODE:
     'Código inválido ou expirado. Confira o e-mail ou peça um novo código.',
   TOO_MANY_CODE_ATTEMPTS: 'Muitas tentativas erradas. Peça um novo código.',

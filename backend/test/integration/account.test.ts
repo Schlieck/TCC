@@ -31,8 +31,24 @@ describe('PATCH /api/me', () => {
     });
   });
 
+  it('changes the e-mail only with the current password', async () => {
+    const withoutPassword = await as(ana).patch('/api/me', { email: 'ana.lima@example.com' });
+    expect(withoutPassword.status).toBe(400);
+    expect(withoutPassword.body.error.details).toEqual([
+      { field: 'currentPassword', message: 'Informe sua senha atual para trocar o e-mail.' },
+    ]);
+
+    const response = await as(ana)
+      .patch('/api/me', { email: 'ana.lima@example.com', currentPassword: 'segredo123' })
+      .expect(200);
+    expect(response.body.email).toBe('ana.lima@example.com');
+  });
+
   it("refuses another account's e-mail", async () => {
-    const response = await as(ana).patch('/api/me', { email: 'bia@example.com' });
+    const response = await as(ana).patch('/api/me', {
+      email: 'bia@example.com',
+      currentPassword: 'segredo123',
+    });
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe('EMAIL_ALREADY_IN_USE');
