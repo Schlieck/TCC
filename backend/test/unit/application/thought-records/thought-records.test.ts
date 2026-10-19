@@ -87,7 +87,7 @@ describe('thought records', () => {
     ['INVALID_INTENSITY', { emotions: [{ emotionId: ANXIETY, intensity: 101 }] }],
     ['INVALID_INTENSITY', { emotions: [{ emotionId: ANXIETY, intensity: 12.5 }] }],
     ['UNKNOWN_EMOTION', { emotions: [{ emotionId: 99, intensity: 50 }] }],
-    ['FUTURE_RECORD_DATE', { date: '2026-10-02' }],
+    ['FUTURE_RECORD_DATE', { date: '2026-10-03' }],
     ['INVALID_TIME', { time: '24:00' }],
     ['INVALID_RECORD_TITLE', { title: ' ' }],
     ['INVALID_RECORD_DESCRIPTION', { description: '' }],
@@ -98,8 +98,9 @@ describe('thought records', () => {
     await expect(attempt).rejects.toMatchObject({ code });
   });
 
-  it('accepts a record dated today', async () => {
+  it('accepts a record dated today, or tomorrow for a patient in a time zone ahead', async () => {
     await expect(createRecord.execute(recordInput({ date: '2026-10-01' }))).resolves.toBeDefined();
+    await expect(createRecord.execute(recordInput({ date: '2026-10-02' }))).resolves.toBeDefined();
   });
 
   it('lists the newest records first, filtered by period', async () => {

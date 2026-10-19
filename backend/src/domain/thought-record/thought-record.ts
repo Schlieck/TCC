@@ -1,4 +1,4 @@
-import { parseCalendarDate, type CalendarDate } from '../shared/calendar-date.js';
+import { addDays, parseCalendarDate, type CalendarDate } from '../shared/calendar-date.js';
 import { NotFoundError, ValidationError } from '../shared/errors.js';
 import { parseRequiredText } from '../shared/text.js';
 import { parseTimeOfDay, type TimeOfDay } from '../shared/time-of-day.js';
@@ -45,7 +45,8 @@ export function parseThoughtRecordContent(
   today: CalendarDate,
 ): ThoughtRecordContent {
   const date = parseCalendarDate(raw.date);
-  if (date > today) {
+  // "Hoje" é o dia do paciente, que pode estar num fuso à frente do servidor: tolera um dia.
+  if (date > addDays(today, 1)) {
     throw new ValidationError('FUTURE_RECORD_DATE', 'Record date is in the future', 'date');
   }
   return {
