@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createSavedReport, deleteSavedReport, fetchEmotionTrend, listSavedReports } from '../api';
 import type { ReportPeriod } from '../report-period';
 
@@ -9,12 +9,8 @@ const keys = {
 };
 
 export function useEmotionTrend(period: ReportPeriod) {
-  return useQuery({
-    queryKey: keys.trend(period),
-    queryFn: () => fetchEmotionTrend(period),
-    // Ao trocar de período, o gráfico anterior fica na tela até o novo chegar.
-    placeholderData: keepPreviousData,
-  });
+  // Sem placeholder: o gráfico de outro período nunca aparece com o título do período novo.
+  return useQuery({ queryKey: keys.trend(period), queryFn: () => fetchEmotionTrend(period) });
 }
 
 export function useSavedReports() {
