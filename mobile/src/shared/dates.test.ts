@@ -1,9 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatLongDate, fromIsoDate, fromTime, toIsoDate, toTime } from './dates';
+import {
+  formatDate,
+  formatLongDate,
+  fromIsoDate,
+  fromTime,
+  isIsoDate,
+  toIsoDate,
+  toTime,
+} from './dates';
 
 describe('calendar dates', () => {
   it('round-trips an ISO date without shifting the day', () => {
     expect(toIsoDate(fromIsoDate('2026-03-01'))).toBe('2026-03-01');
+  });
+
+  it('accepts only existing days in ISO format', () => {
+    expect(isIsoDate('2024-02-29')).toBe(true);
+    expect(isIsoDate('2026-02-30')).toBe(false);
+    expect(isIsoDate('2026-2-3')).toBe(false);
+    expect(isIsoDate('28/09/2026')).toBe(false);
   });
 
   it('formats dates for display in Portuguese', () => {

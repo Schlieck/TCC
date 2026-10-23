@@ -9,8 +9,7 @@ import { LinkButton } from '@/shared/ui/link-button';
 import { TextField } from '@/shared/ui/text-field';
 import { useCreateSavedReport } from '../hooks/use-reports';
 import type { ReportPeriod } from '../report-period';
-
-const NAME_MAX_LENGTH = 80;
+import { REPORT_NAME_MAX_LENGTH, reportNameSchema } from '../validation';
 
 interface SaveReportModalProps {
   visible: boolean;
@@ -25,13 +24,13 @@ export function SaveReportModal({ visible, period, suggestedName, onClose }: Sav
   const [error, setError] = useState<string | null>(null);
 
   async function save() {
-    const trimmed = name.trim();
-    if (trimmed.length === 0) {
-      setError('Dê um nome ao relatório.');
+    const parsed = reportNameSchema.safeParse(name);
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Dê um nome ao relatório.');
       return;
     }
     try {
-      await createReport.mutateAsync({ name: trimmed, period });
+      await createReport.mutateAsync({ name: parsed.data, period });
       onClose();
       notify('Relatório salvo', 'Você encontra seus relatórios em "Verificar relatórios gerados".');
     } catch (saveError) {
@@ -60,7 +59,7 @@ export function SaveReportModal({ visible, period, suggestedName, onClose }: Sav
             label="Nome do relatório"
             value={name}
             onChangeText={setName}
-            maxLength={NAME_MAX_LENGTH}
+            maxLength={REPORT_NAME_MAX_LENGTH}
             error={error ?? undefined}
             autoFocus
           />
