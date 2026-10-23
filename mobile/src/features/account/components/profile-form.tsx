@@ -91,7 +91,8 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
       {pendingEmail && !formState.isDirty ? (
         <AppText variant="caption" color={colors.success} accessibilityLiveRegion="polite">
           Enviamos um link de confirmação para {pendingEmail}. O e-mail da conta só muda depois que
-          você tocar nesse link; até lá, continue entrando com {profile.email}.
+          você tocar nesse link; até lá, continue entrando com {profile.email}. Depois da troca, o
+          app pede para você entrar de novo, já com o novo e-mail.
         </AppText>
       ) : null}
       <Button
