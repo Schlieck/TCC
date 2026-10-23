@@ -6,7 +6,9 @@
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      // O "types" do pacote aponta para o build web, que não exporta getReactNativePersistence.
+      "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.mts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
