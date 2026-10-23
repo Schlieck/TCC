@@ -1,80 +1,98 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { onAuthStateChanged, reload, signOut as firebaseSignOut, type User } from 'firebase/auth';
 import {
   createContext,
   use,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
-import { profileQueryKey } from '@/features/account/hooks/use-profile';
-import { authSession } from '@/shared/api/auth-session';
-import { tokenStorage } from '@/shared/storage/token-storage';
-import type { AuthSession } from './api';
+import { hasProfile } from '@/features/account/api';
+import { auth, requireAuth } from '@/shared/firebase/app';
+import { translateAuthError } from '@/shared/firebase/auth-errors';
 
-export type AuthStatus = 'loading' | 'signedIn' | 'signedOut';
+/**
+ * `unverified`: falta clicar no link do e-mail. `needsProfile`: a conta existe, mas este aparelho
+ * ainda não tem o perfil local (reinstalação, outro celular).
+ */
+export type AuthStatus = 'loading' | 'signedOut' | 'unverified' | 'needsProfile' | 'signedIn';
 
 interface AuthContextValue {
   status: AuthStatus;
-  signIn: (session: AuthSession) => Promise<void>;
+  email: string | null;
+  /** Relê o usuário no Firebase (e-mail confirmado?) e o perfil local. */
+  refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+async function statusOf(user: User | null): Promise<AuthStatus> {
+  if (!user) {
+    return 'signedOut';
+  }
+  if (!user.emailVerified) {
+    return 'unverified';
+  }
+  return (await hasProfile(user.uid)) ? 'signedIn' : 'needsProfile';
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<AuthStatus>('loading');
+  const [status, setStatus] = useState<AuthStatus>(auth ? 'loading' : 'signedOut');
+  const [email, setEmail] = useState<string | null>(null);
+  const uidRef = useRef<string | null>(null);
+  // Descarta resultados atrasados quando o usuário muda no meio da leitura do perfil.
+  const generationRef = useRef(0);
 
-  const signIn = useCallback(
-    async ({ token, user }: AuthSession) => {
-      await tokenStorage.save(token);
-      authSession.setToken(token);
-      queryClient.setQueryData(profileQueryKey, user);
-      setStatus('signedIn');
+  const apply = useCallback(
+    async (user: User | null) => {
+      const generation = ++generationRef.current;
+      if ((user?.uid ?? null) !== uidRef.current) {
+        uidRef.current = user?.uid ?? null;
+        queryClient.clear();
+      }
+      const next = await statusOf(user).catch((): AuthStatus => 'signedOut');
+      if (generation === generationRef.current) {
+        setEmail(user?.email ?? null);
+        setStatus(next);
+      }
     },
     [queryClient],
   );
 
-  const signOut = useCallback(async () => {
-    authSession.setToken(null);
-    queryClient.clear();
-    setStatus('signedOut');
-    await tokenStorage.clear();
-  }, [queryClient]);
-
-  // Token expirado ou revogado: a primeira resposta 401 da API encerra a sessão.
   useEffect(() => {
-    authSession.onUnauthorized(() => {
-      void signOut();
+    if (!auth) {
+      return;
+    }
+    return onAuthStateChanged(auth, (user) => {
+      void apply(user);
     });
-    return () => {
-      authSession.onUnauthorized(null);
-    };
-  }, [signOut]);
+  }, [apply]);
 
-  useEffect(() => {
-    let active = true;
-    tokenStorage
-      .read()
-      .then((token) => {
-        if (active) {
-          authSession.setToken(token);
-          setStatus(token ? 'signedIn' : 'signedOut');
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setStatus('signedOut');
-        }
-      });
-    return () => {
-      active = false;
-    };
+  const refresh = useCallback(async () => {
+    const user = requireAuth().currentUser;
+    if (user) {
+      try {
+        await reload(user);
+      } catch (error) {
+        throw translateAuthError(error);
+      }
+    }
+    await apply(requireAuth().currentUser);
+  }, [apply]);
+
+  const signOut = useCallback(async () => {
+    await firebaseSignOut(requireAuth());
   }, []);
 
-  const value = useMemo(() => ({ status, signIn, signOut }), [status, signIn, signOut]);
+  const value = useMemo(
+    () => ({ status, email, refresh, signOut }),
+    [status, email, refresh, signOut],
+  );
   return <AuthContext value={value}>{children}</AuthContext>;
 }
 

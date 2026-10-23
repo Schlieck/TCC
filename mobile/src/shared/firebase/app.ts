@@ -1,8 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeApp } from 'firebase/app';
-import { getReactNativePersistence, initializeAuth, type Auth } from 'firebase/auth';
+import {
+  EmailAuthProvider,
+  getReactNativePersistence,
+  initializeAuth,
+  reauthenticateWithCredential,
+  type Auth,
+  type User,
+} from 'firebase/auth';
 import { firebaseConfig } from '@/shared/config/firebase-config';
 import { AppError } from '@/shared/errors';
+import { translateAuthError } from './auth-errors';
 
 function createAuth(): Auth | null {
   if (!firebaseConfig.ok) {
@@ -26,11 +34,29 @@ export function requireAuth(): Auth {
   return auth;
 }
 
-/** uid do usuário logado: toda consulta ao banco local filtra por ele. */
-export function requireUid(): string {
+export function requireUser(): User {
   const user = requireAuth().currentUser;
   if (!user) {
     throw new AppError('Sua sessão expirou. Faça login novamente.');
   }
-  return user.uid;
+  return user;
+}
+
+/** uid do usuário logado: toda consulta ao banco local filtra por ele. */
+export function requireUid(): string {
+  return requireUser().uid;
+}
+
+/** Operações sensíveis (senha, e-mail, exclusão) pedem a senha atual de novo. */
+export async function reauthenticate(currentPassword: string): Promise<User> {
+  const user = requireUser();
+  try {
+    await reauthenticateWithCredential(
+      user,
+      EmailAuthProvider.credential(user.email ?? '', currentPassword),
+    );
+  } catch (error) {
+    throw translateAuthError(error, { currentPasswordField: 'currentPassword' });
+  }
+  return user;
 }

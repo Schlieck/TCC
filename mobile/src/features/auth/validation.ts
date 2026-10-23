@@ -1,10 +1,12 @@
 import { z } from 'zod';
+import type { NewProfileInput } from '@/features/account/api';
 import {
   birthDateField,
   emailField,
   nameField,
   newPasswordField,
   phoneField,
+  privacyConsentField,
 } from '@/shared/forms/fields';
 import { brDateToIso, onlyDigits } from '@/shared/forms/masks';
 import type { RegisterRequest } from './api';
@@ -16,17 +18,20 @@ export const logInFormSchema = z.object({
 
 export type LogInFormValues = z.infer<typeof logInFormSchema>;
 
-export const registerFormSchema = z
-  .object({
-    name: nameField,
+export const completeProfileFormSchema = z.object({
+  name: nameField,
+  phone: phoneField,
+  birthDate: birthDateField,
+  acceptedPrivacyTerms: privacyConsentField,
+});
+
+export type CompleteProfileFormValues = z.infer<typeof completeProfileFormSchema>;
+
+export const registerFormSchema = completeProfileFormSchema
+  .extend({
     email: emailField,
     password: newPasswordField,
     confirmPassword: z.string(),
-    phone: phoneField,
-    birthDate: birthDateField,
-    acceptedPrivacyTerms: z
-      .boolean()
-      .refine((accepted) => accepted, 'É preciso aceitar para criar a conta.'),
   })
   .refine((values) => values.password === values.confirmPassword, {
     path: ['confirmPassword'],
@@ -35,15 +40,17 @@ export const registerFormSchema = z
 
 export type RegisterFormValues = z.infer<typeof registerFormSchema>;
 
-export function toRegisterRequest(values: RegisterFormValues): RegisterRequest {
+export function toNewProfileInput(values: CompleteProfileFormValues): NewProfileInput {
   return {
     name: values.name,
-    email: values.email,
-    password: values.password,
     phone: onlyDigits(values.phone),
     birthDate: brDateToIso(values.birthDate) ?? '',
     acceptedPrivacyTerms: values.acceptedPrivacyTerms,
   };
+}
+
+export function toRegisterRequest(values: RegisterFormValues): RegisterRequest {
+  return { ...toNewProfileInput(values), email: values.email, password: values.password };
 }
 
 export const forgotPasswordFormSchema = z.object({
@@ -51,22 +58,3 @@ export const forgotPasswordFormSchema = z.object({
 });
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordFormSchema>;
-
-const codeField = z.string().regex(/^\d{6}$/, 'Digite os 6 números do código.');
-
-export const registrationCodeFormSchema = z.object({ code: codeField });
-
-export type RegistrationCodeFormValues = z.infer<typeof registrationCodeFormSchema>;
-
-export const resetPasswordFormSchema = z
-  .object({
-    code: codeField,
-    newPassword: newPasswordField,
-    confirmPassword: z.string(),
-  })
-  .refine((values) => values.newPassword === values.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'As senhas não conferem.',
-  });
-
-export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;

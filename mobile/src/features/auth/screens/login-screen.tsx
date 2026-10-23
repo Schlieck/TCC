@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
-import { applyApiError } from '@/shared/forms/apply-api-error';
+import { applyFormError } from '@/shared/forms/apply-form-error';
 import { FormTextField } from '@/shared/forms/form-text-field';
 import { spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
@@ -12,11 +12,9 @@ import { FormError } from '@/shared/ui/form-error';
 import { LinkButton } from '@/shared/ui/link-button';
 import { Screen } from '@/shared/ui/screen';
 import { logIn } from '../api';
-import { useAuth } from '../auth-context';
 import { logInFormSchema, type LogInFormValues } from '../validation';
 
 export function LoginScreen() {
-  const { signIn } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError, formState } = useForm<LogInFormValues>({
     resolver: zodResolver(logInFormSchema),
@@ -26,9 +24,9 @@ export function LoginScreen() {
   const submit = handleSubmit(async (values) => {
     setFormError(null);
     try {
-      await signIn(await logIn(values));
+      await logIn(values);
     } catch (error) {
-      setFormError(applyApiError(error, setError, ['email', 'password']));
+      setFormError(applyFormError(error, setError, ['email', 'password']));
     }
   });
 

@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
 import { changePassword } from '@/features/auth/api';
-import { useAuth } from '@/features/auth/auth-context';
-import { applyApiError } from '@/shared/forms/apply-api-error';
+import { applyFormError } from '@/shared/forms/apply-form-error';
 import { FormTextField } from '@/shared/forms/form-text-field';
 import { colors, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
@@ -19,7 +18,6 @@ const EMPTY: ChangePasswordFormValues = {
 };
 
 export function ChangePasswordForm() {
-  const { signIn } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const [changed, setChanged] = useState(false);
   const { control, handleSubmit, setError, reset, formState } = useForm<ChangePasswordFormValues>({
@@ -31,12 +29,11 @@ export function ChangePasswordForm() {
     setFormError(null);
     setChanged(false);
     try {
-      // A troca invalida o token antigo; a sessão nova já vem na resposta.
-      await signIn(await changePassword({ currentPassword, newPassword }));
+      await changePassword({ currentPassword, newPassword });
       reset(EMPTY);
       setChanged(true);
     } catch (error) {
-      setFormError(applyApiError(error, setError, ['currentPassword', 'newPassword']));
+      setFormError(applyFormError(error, setError, ['currentPassword', 'newPassword']));
     }
   });
 

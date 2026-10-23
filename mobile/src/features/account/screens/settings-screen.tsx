@@ -44,7 +44,6 @@ export function SettingsScreen() {
           />
           <DeleteAccountModal
             visible={deleting}
-            email={profile.data.email}
             onClose={() => {
               setDeleting(false);
             }}

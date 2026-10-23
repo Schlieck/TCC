@@ -20,6 +20,10 @@ export const birthDateField = z
   .string()
   .refine(isPastDate, 'Informe uma data válida no formato DD/MM/AAAA.');
 
+export const privacyConsentField = z
+  .boolean()
+  .refine((accepted) => accepted, 'É preciso aceitar para criar a conta.');
+
 export const newPasswordField = z
   .string()
   .min(8, 'Use pelo menos 8 caracteres.')

@@ -1,13 +1,29 @@
 import { z } from 'zod';
+import { isIsoDate, todayIso } from '@/shared/dates';
 import {
   birthDateField,
   emailField,
   nameField,
   newPasswordField,
   phoneField,
+  privacyConsentField,
 } from '@/shared/forms/fields';
 import { brDateToIso, formatPhone, isoToBrDate, onlyDigits } from '@/shared/forms/masks';
 import type { ProfileChanges, UserProfile } from './api';
+
+/** O que é gravado no perfil local (data ISO, telefone só com dígitos). */
+export const profileSchema = z.object({
+  name: nameField.transform((name) => name.replace(/\s+/g, ' ')),
+  phone: z.string().regex(/^\d{10,11}$/, 'Informe o telefone com DDD.'),
+  birthDate: z
+    .string()
+    .refine(
+      (date) => isIsoDate(date) && date >= '1900-01-01' && date < todayIso(),
+      'Informe uma data de nascimento válida.',
+    ),
+});
+
+export const newProfileSchema = profileSchema.extend({ acceptedPrivacyTerms: privacyConsentField });
 
 /** Trocar o e-mail exige a senha atual, porque é o e-mail que recupera a conta. */
 export function profileFormSchema(currentEmail: string) {
@@ -51,9 +67,11 @@ export function toProfileChanges(values: ProfileFormValues): ProfileChanges {
   };
 }
 
+export const currentPasswordField = z.string().min(1, 'Informe a senha atual.');
+
 export const changePasswordFormSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Informe a senha atual.'),
+    currentPassword: currentPasswordField,
     newPassword: newPasswordField,
     confirmPassword: z.string(),
   })
@@ -63,5 +81,3 @@ export const changePasswordFormSchema = z
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>;
-
-export const deletionCodeSchema = z.string().regex(/^\d{6}$/, 'Digite os 6 números do código.');

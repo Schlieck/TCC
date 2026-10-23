@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   changePasswordFormSchema,
-  deletionCodeSchema,
+  newProfileSchema,
+  profileSchema,
   profileFormSchema,
   toProfileChanges,
   toProfileFormValues,
@@ -10,7 +11,6 @@ import {
 describe('profile form', () => {
   it('shows the stored profile formatted and sends it back normalized', () => {
     const values = toProfileFormValues({
-      id: 1,
       name: 'Ana Souza',
       email: 'ana@example.com',
       phone: '49999990000',
@@ -70,10 +70,25 @@ describe('change password form', () => {
   });
 });
 
-describe('deletion code', () => {
-  it('accepts exactly six digits', () => {
-    expect(deletionCodeSchema.safeParse('123456').success).toBe(true);
-    expect(deletionCodeSchema.safeParse('12345').success).toBe(false);
-    expect(deletionCodeSchema.safeParse('12a456').success).toBe(false);
+describe('stored profile', () => {
+  const profile = { name: '  Ana   Souza ', phone: '49999990000', birthDate: '1998-04-12' };
+
+  it('collapses spaces in the name', () => {
+    expect(profileSchema.parse(profile).name).toBe('Ana Souza');
+  });
+
+  it('rejects a formatted phone and a birth date that is not in the past', () => {
+    expect(profileSchema.safeParse({ ...profile, phone: '(49) 99999-0000' }).success).toBe(false);
+    expect(profileSchema.safeParse({ ...profile, birthDate: '2999-01-01' }).success).toBe(false);
+    expect(profileSchema.safeParse({ ...profile, birthDate: '1899-12-31' }).success).toBe(false);
+  });
+
+  it('requires the privacy consent for a new profile', () => {
+    expect(newProfileSchema.safeParse({ ...profile, acceptedPrivacyTerms: false }).success).toBe(
+      false,
+    );
+    expect(newProfileSchema.safeParse({ ...profile, acceptedPrivacyTerms: true }).success).toBe(
+      true,
+    );
   });
 });

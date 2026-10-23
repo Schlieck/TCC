@@ -1,47 +1,67 @@
-import { z } from 'zod';
-import { userProfileSchema } from '@/features/account/api';
-import { httpClient } from '@/shared/api/http-client';
-
-const authSessionSchema = z.object({
-  token: z.string(),
-  user: userProfileSchema,
-});
-
-export type AuthSession = z.infer<typeof authSessionSchema>;
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  updatePassword,
+} from 'firebase/auth';
+import { createProfile, type NewProfileInput } from '@/features/account/api';
+import { newProfileSchema } from '@/features/account/validation';
+import { errorCode, translateAuthError } from '@/shared/firebase/auth-errors';
+import { reauthenticate, requireAuth, requireUser } from '@/shared/firebase/app';
+import { parseInput } from '@/shared/parse-input';
 
 export interface LogInRequest {
   email: string;
   password: string;
 }
 
-export interface RegisterRequest {
-  name: string;
+export interface RegisterRequest extends NewProfileInput {
   email: string;
   password: string;
-  phone: string;
-  birthDate: string;
-  acceptedPrivacyTerms: boolean;
 }
 
-export function logIn(body: LogInRequest): Promise<AuthSession> {
-  return httpClient.request('/auth/login', authSessionSchema, { method: 'POST', body });
+export async function logIn({ email, password }: LogInRequest): Promise<void> {
+  try {
+    await signInWithEmailAndPassword(requireAuth(), email, password);
+  } catch (error) {
+    throw translateAuthError(error);
+  }
 }
 
-/** Envia o código de confirmação; responde igual mesmo que o e-mail já tenha conta. */
-export function register(body: RegisterRequest): Promise<void> {
-  return httpClient.execute('/auth/register', { method: 'POST', body });
+/** Cria a conta no Firebase e o perfil local (com o consentimento) e envia a verificação. */
+export async function register({ email, password, ...profile }: RegisterRequest): Promise<void> {
+  // Antes de criar a conta, para não deixar conta sem perfil por um dado inválido.
+  parseInput(newProfileSchema, profile);
+  let credential;
+  try {
+    credential = await createUserWithEmailAndPassword(requireAuth(), email, password);
+  } catch (error) {
+    throw translateAuthError(error);
+  }
+  // Se o perfil falhar aqui, a tela "Complete seu cadastro" pede os dados de novo.
+  await createProfile(credential.user.uid, profile);
+  // Se o envio falhar, a tela de confirmação tem "Reenviar e-mail".
+  await sendEmailVerification(credential.user).catch(() => undefined);
 }
 
-export interface ConfirmRegistrationRequest {
-  email: string;
-  code: string;
+export async function resendVerification(): Promise<void> {
+  try {
+    await sendEmailVerification(requireUser());
+  } catch (error) {
+    throw translateAuthError(error);
+  }
 }
 
-export function confirmRegistration(body: ConfirmRegistrationRequest): Promise<AuthSession> {
-  return httpClient.request('/auth/register/confirm', authSessionSchema, {
-    method: 'POST',
-    body,
-  });
+/** Responde igual exista ou não uma conta com o e-mail. */
+export async function requestPasswordReset(email: string): Promise<void> {
+  try {
+    await sendPasswordResetEmail(requireAuth(), email);
+  } catch (error) {
+    if (errorCode(error) !== 'auth/user-not-found') {
+      throw translateAuthError(error);
+    }
+  }
 }
 
 export interface ChangePasswordRequest {
@@ -49,25 +69,14 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
-/** A API devolve uma sessão nova: o token antigo deixa de valer. */
-export function changePassword(body: ChangePasswordRequest): Promise<AuthSession> {
-  return httpClient.request('/me/password', authSessionSchema, { method: 'PUT', body });
-}
-
-/** Sempre responde igual, exista ou não uma conta com o e-mail. */
-export function requestPasswordReset(email: string): Promise<void> {
-  return httpClient.execute('/auth/password-reset/request', { method: 'POST', body: { email } });
-}
-
-export interface ResetPasswordRequest {
-  email: string;
-  code: string;
-  newPassword: string;
-}
-
-export function resetPassword(body: ResetPasswordRequest): Promise<AuthSession> {
-  return httpClient.request('/auth/password-reset/confirm', authSessionSchema, {
-    method: 'POST',
-    body,
-  });
+export async function changePassword({
+  currentPassword,
+  newPassword,
+}: ChangePasswordRequest): Promise<void> {
+  const user = await reauthenticate(currentPassword);
+  try {
+    await updatePassword(user, newPassword);
+  } catch (error) {
+    throw translateAuthError(error);
+  }
 }

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
-import { applyApiError } from '@/shared/forms/apply-api-error';
+import { applyFormError } from '@/shared/forms/apply-form-error';
 import { FormTextField } from '@/shared/forms/form-text-field';
 import { formatDateInput, formatPhone } from '@/shared/forms/masks';
 import { colors, spacing } from '@/shared/theme';
@@ -19,12 +19,13 @@ import {
   type ProfileFormValues,
 } from '../validation';
 
-const API_FIELDS = ['name', 'email', 'phone', 'birthDate', 'currentPassword'] as const;
+const FIELDS = ['name', 'email', 'phone', 'birthDate', 'currentPassword'] as const;
 
 export function ProfileForm({ profile }: { profile: UserProfile }) {
   const updateProfile = useUpdateProfile();
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const { control, handleSubmit, setError, reset, formState } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema(profile.email)),
     defaultValues: toProfileFormValues(profile),
@@ -34,12 +35,14 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
   const submit = handleSubmit(async (values) => {
     setFormError(null);
     setSaved(false);
+    setPendingEmail(null);
     try {
       const updated = await updateProfile.mutateAsync(toProfileChanges(values));
-      reset(toProfileFormValues(updated));
+      reset(toProfileFormValues(updated.profile));
       setSaved(true);
+      setPendingEmail(updated.pendingEmail);
     } catch (error) {
-      setFormError(applyApiError(error, setError, API_FIELDS));
+      setFormError(applyFormError(error, setError, FIELDS));
     }
   });
 
@@ -83,6 +86,12 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
       {saved && !formState.isDirty ? (
         <AppText variant="caption" color={colors.success} accessibilityLiveRegion="polite">
           Alterações salvas.
+        </AppText>
+      ) : null}
+      {pendingEmail && !formState.isDirty ? (
+        <AppText variant="caption" color={colors.success} accessibilityLiveRegion="polite">
+          Enviamos um link de confirmação para {pendingEmail}. O e-mail da conta só muda depois que
+          você tocar nesse link; até lá, continue entrando com {profile.email}.
         </AppText>
       ) : null}
       <Button

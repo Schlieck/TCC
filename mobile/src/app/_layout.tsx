@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
 import { ApiError } from '@/shared/api/errors';
 import { apiConfig } from '@/shared/config/api-config';
+import { firebaseConfig } from '@/shared/config/firebase-config';
 import { colors } from '@/shared/theme';
 import { ConfigErrorScreen } from '@/shared/ui/config-error-screen';
 
@@ -65,6 +66,9 @@ function RootNavigator() {
   if (!ready) {
     return null;
   }
+  if (!firebaseConfig.ok) {
+    return <ConfigErrorScreen message={firebaseConfig.message} />;
+  }
   if (!apiConfig.ok) {
     return <ConfigErrorScreen message={apiConfig.message} />;
   }
@@ -75,6 +79,12 @@ function RootNavigator() {
     >
       <Stack.Protected guard={status === 'signedIn'}>
         <Stack.Screen name="(app)" />
+      </Stack.Protected>
+      <Stack.Protected guard={status === 'needsProfile'}>
+        <Stack.Screen name="complete-profile" />
+      </Stack.Protected>
+      <Stack.Protected guard={status === 'unverified'}>
+        <Stack.Screen name="verify-email" />
       </Stack.Protected>
       <Stack.Protected guard={status === 'signedOut'}>
         <Stack.Screen name="(auth)" />
