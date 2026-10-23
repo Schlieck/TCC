@@ -2,70 +2,58 @@
 
 App mobile de apoio à Terapia Cognitivo-Comportamental (TCC de Ciência da Computação). Requisitos, diagramas e mockups estão em `docs/relatorio-tcc1.pdf` (capítulo 3). O app **complementa** a terapia: nada de diagnóstico, recomendação clínica automática ou perfil de psicólogo.
 
-## Monorepo
+## Repositório
 
-- `backend/` — Node.js + Express 5 + Knex/PostgreSQL, TypeScript strict, ESM (`"type": "module"`, imports relativos com extensão `.js`).
-- `mobile/` — Expo SDK 57 (Expo Go), expo-router em `src/app`, TypeScript strict.
-- `docs/` — relatório do TCC, `glossario.md` (termos do TCC ↔ código) e `decisoes-de-arquitetura.md`.
-- Pacotes independentes, cada um com seu `package.json` e lockfile. **Sem workspaces** e sem pacote de tipos compartilhado (evita configurar Metro para monorepo).
+- `mobile/` — Expo SDK 57 (Expo Go), expo-router em `src/app`, TypeScript strict. É o único pacote: não há servidor próprio (ADR 11).
+- `docs/` — relatório do TCC, `glossario.md` (termos do TCC ↔ código), `decisoes-de-arquitetura.md` e `relatorio-de-testes.md` (registro histórico; não editar).
 
-## Comandos
-
-Backend (`cd backend`):
+## Comandos (`cd mobile`)
 
 | Comando | O que faz |
 |---|---|
-| `npm run dev` | API com `tsx watch` em `HOST:PORT` (padrão `0.0.0.0:3333`) |
-| `npm run build` / `npm start` | compila com `tsc` para `dist/` e roda o build |
+| `npm run dev` | Expo (no emulador: `npx expo start --android`) |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` / ESLint type-checked |
-| `npm test` | unitários + integração (`test:unit`, `test:integration` isolados) |
-| `npm run migrate` / `migrate:test` / `migrate:rollback` | migrations no banco de dev / de teste / desfaz o último lote |
-| `npm run seed` | dados de desenvolvimento (recusa rodar com `NODE_ENV=production`) |
+| `npm test` | Vitest: lógica pura e o esquema do banco (via `node:sqlite`) |
+| `npm run build` | `expo export` Android, teste de fumaça do bundle |
 
-Mobile (`cd mobile`): `npm run dev` (Expo), `npm run typecheck`, `npm run lint`, `npm test` (Vitest, só lógica pura), `npm run build` (`expo export` Android, teste de fumaça do bundle). Instale dependências com `npx expo install <pacote>` para obter versões compatíveis com o SDK; só use bibliotecas incluídas no Expo Go.
+Instale dependências com `npx expo install <pacote>` para obter versões compatíveis com o SDK; só use bibliotecas incluídas no Expo Go (nada de `@react-native-firebase`). O APK de teste sai do perfil `preview` do `eas.json` (veja o README).
 
-Ao fim de cada etapa: typecheck, lint e testes dos dois pacotes passando, depois commit.
+Ao fim de cada etapa: typecheck, lint e testes passando, depois commit.
 
-## Arquitetura do backend (hexagonal)
+## Arquitetura
 
-```
-src/domain/        entidades, value objects, erros de domínio — sem nenhuma biblioteca
-src/application/   ports/ (interfaces) e use-cases/<feature>/<verbo-substantivo>.ts
-src/adapters/      inbound/http (rotas, controllers, middlewares, schemas zod)
-                   outbound (postgres, security, email, clock)
-src/main/          config (env validado com zod), container (DI manual), server, scripts de banco
-```
+- **Login:** Firebase Authentication pelo SDK JavaScript `firebase`, com sessão persistida no AsyncStorage (`src/shared/firebase/app.ts`). E-mail confirmado é obrigatório. Erros do Firebase viram mensagens em pt-BR em `shared/firebase/auth-errors.ts`.
+- **Dados:** só no aparelho, em SQLite (`expo-sqlite`), em `src/shared/db/`. Nada de Firestore nem servidor.
+- **Sessão no app:** `features/auth/auth-context.tsx` deriva o status (`signedOut`, `unverified`, `needsProfile`, `signedIn`) do Firebase e do perfil local; o layout raiz mostra uma pilha protegida por status.
 
-- Dependências só apontam para dentro: adapters → application → domain. O ESLint (`no-restricted-imports`) impede `domain/` e `application/` de importar pacotes npm, `node:*`, `adapters/` ou `main/`; precisou de infraestrutura, declare uma porta em `application/ports/` e implemente em `adapters/outbound/` com `implements`.
-- Um caso de uso por arquivo: classe com `execute(input)` e tipos `XxxInput`/`XxxOutput` próprios, independentes do zod.
-- zod só no adaptador HTTP (requisições, com `z.infer`) e em `main/config`.
-- Repositórios tipam as linhas do banco (`XxxRow`) e devolvem entidades; linhas nunca saem do adaptador.
-- Controllers finos: validam, chamam um caso de uso, mapeiam para HTTP. Erros de domínio tipados viram status HTTP em um único middleware de erro.
-- Toda consulta de dados do usuário filtra por `user_id` do token. Recurso de outro usuário responde 404.
-- Datas de calendário trafegam como `'YYYY-MM-DD'` (o parser do pg para `DATE` está desligado em `connection.ts`).
-- Migrations são autocontidas: não importam código do projeto (o Knex as carrega com `import()` nativo nos testes, e uma migration deve ser um retrato congelado do esquema).
-- Toda tabela tem `created_at`/`updated_at` e o trigger `<tabela>_set_updated_at` (função `set_updated_at()` da primeira migration).
-- Usuário de desenvolvimento do seed: `teste@shifty.dev` / `Shifty123`.
+### Banco local
 
-## Mobile
+- O esquema fica em `shared/db/migrations.ts`, uma entrada por versão (`PRAGMA user_version`). Nunca altere uma versão publicada: acrescente outra, para não perder os dados de quem já usa o app.
+- Toda tabela tem `created_at`/`updated_at` (texto ISO) e o trigger `<tabela>_set_updated_at`. Os dados do usuário referenciam `profiles(uid)` com `ON DELETE CASCADE`.
+- `PRAGMA foreign_keys = ON` vale por conexão: toda escrita passa por `writeTransaction` (fila única na conexão principal). Não use `withExclusiveTransactionAsync`, que abre outra conexão sem as FKs.
+- **Toda consulta filtra pelo uid do usuário logado** (`requireUid()`). Recurso de outro usuário responde "não encontrado". O e-mail vem sempre do Firebase; não guarde cópia local.
+- Datas de calendário são texto `'YYYY-MM-DD'`; horários, `'HH:MM'`.
+
+### Estrutura do mobile
 
 - `src/app/` só tem rotas finas que reexportam telas de `src/features/<feature>/screens`.
-- `src/features/<feature>/` contém `screens/`, `hooks/` e `api.ts`. O `api.ts` define schemas zod das respostas e os tipos com `z.infer`, sempre com o `httpClient` de `src/shared/api`.
+- `src/features/<feature>/` contém `screens/`, `hooks/`, `api.ts` e `validation.ts`. O `api.ts` é a camada de dados: lê e grava no SQLite (e chama o Firebase, em `auth` e `account`), com tipos (`interface`) próprios e linhas do banco tipadas como `XxxRow`, que nunca saem dele.
+- Regras de negócio (limites de tamanho, intensidade 0–100, grupo do mesmo usuário, nome de grupo único, período de relatório) ficam nos schemas zod de `validation.ts`, usados pelo formulário e de novo pelo `api.ts` com `parseInput`. Erros para o paciente são `AppError` (`shared/errors.ts`), com campo opcional para o formulário (`applyFormError`).
+- Lógica pura (tendência de emoções, períodos, validações, PDF) fica fora do SQLite e do React Native, para ser testada no Vitest.
 - Tema (cores, espaçamento, fontes) só em `src/shared/theme`. Nada de cor literal nas telas.
-- Estado de servidor com TanStack Query; formulários com react-hook-form + zod (mensagens em pt-BR).
+- Estado com TanStack Query (os hooks chamam o `api.ts`); formulários com react-hook-form + zod (mensagens em pt-BR).
 - Alias `@/` → `src/`.
 - Rotas tipadas (`typedRoutes`): o `.expo/types` é gerado pelo `npm run dev`; rode-o uma vez após criar rotas para o typecheck validar os caminhos.
-- Sessão: o token fica no `expo-secure-store` e em memória (`shared/api/auth-session`); qualquer 401 com token encerra a sessão.
 
 ## Convenções
 
 - Código, tabelas e colunas em inglês (snake_case no banco); textos de interface em pt-BR. Atualize `docs/glossario.md` ao criar um termo de domínio.
 - Sem `any`: use `unknown` e faça narrowing. Sem código morto nem comentários óbvios.
-- Testes: casos de uso com repositórios em memória (`backend/test/support/in-memory/`), rotas com supertest no banco `shifty_test`.
-- Commits (ADR 7): pequenos, mensagem de uma linha com prefixo Conventional Commits (`feat(backend): ...`), sem corpo longo e **sem `Co-Authored-By` nem menção ao Claude**. **Nunca faça push nem crie branch remota sem perguntar.**
+- Commits (ADR 7): pequenos, mensagem de uma linha com prefixo Conventional Commits (`feat(mobile): ...`), sem corpo longo e **sem `Co-Authored-By` nem menção ao Claude**. **Nunca faça push nem crie branch remota sem perguntar.**
 
 ## Segurança e privacidade (LGPD: dados de saúde são sensíveis)
 
-- Senhas e códigos de verificação com bcrypt; JWT com expiração; token no app só em `expo-secure-store`.
-- Nunca registrar em log conteúdo de registros, senhas, tokens ou códigos. Única exceção: o `EmailSender` de console, que existe para mostrar o código em desenvolvimento.
-- Segredos só em `.env` (ignorado). Versionar apenas `.env.example`.
+- Senhas só passam pelo Firebase; o app nunca as guarda. Operações sensíveis (trocar senha ou e-mail, excluir conta) reautenticam com a senha atual.
+- Nunca registrar em log conteúdo de registros, senhas ou tokens.
+- Valores do Firebase só em `mobile/.env` (ignorado). Versionar apenas `.env.example`.
+- Excluir a conta apaga os dados locais e a conta do Firebase na mesma transação (`deleteAccount`).

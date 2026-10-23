@@ -6,106 +6,84 @@ Aplicativo mobile de apoio à Terapia Cognitivo-Comportamental, desenvolvido com
 
 O relatório do TCC I está em [docs/relatorio-tcc1.pdf](docs/relatorio-tcc1.pdf).
 
+## Como funciona
+
+- **Login** (e-mail e senha) pelo Firebase Authentication. A conta só é liberada depois que o e-mail é confirmado pelo link enviado no cadastro.
+- **Dados** (perfil, registros, cartões, relatórios) ficam **só no aparelho**, num banco SQLite, separados por usuário. Não há servidor próprio nem cópia na nuvem: desinstalar o app ou trocar de celular apaga os registros.
+
 ## Estrutura
 
 | Pasta | Conteúdo |
 |---|---|
-| [backend/](backend/) | API REST em Node.js + Express + PostgreSQL (TypeScript, arquitetura hexagonal) |
 | [mobile/](mobile/) | App React Native com Expo SDK 57, executado pelo Expo Go |
-| [docs/](docs/) | Relatório do TCC, [glossário](docs/glossario.md) e [decisões de arquitetura](docs/decisoes-de-arquitetura.md) |
+| [docs/](docs/) | Relatório do TCC, [glossário](docs/glossario.md), [decisões de arquitetura](docs/decisoes-de-arquitetura.md) e [relatório de testes](docs/relatorio-de-testes.md) |
 
 ## Pré-requisitos
 
 - Git
 - Node.js 22.13 ou superior (desenvolvido com Node 24 LTS)
-- PostgreSQL 18 local; o instalador oficial já inclui o pgAdmin. Anote a senha do usuário `postgres` definida na instalação
-- Celular Android 9+ ou iPhone com iOS 16.4+, com o app **Expo Go** instalado
-- Computador e celular **na mesma rede Wi-Fi**
+- Celular Android 9+ ou iPhone com iOS 16.4+, com o app **Expo Go** instalado, na mesma rede Wi-Fi do computador (ou um emulador Android)
+- Um projeto no [Console do Firebase](https://console.firebase.google.com/)
+
+## Configurar o Firebase
+
+1. No Console do Firebase, crie um projeto e registre um **app Web** (ícone `</>`).
+2. Em **Authentication → Método de login**, ative **E-mail/senha**.
+3. Copie os valores do `firebaseConfig` do app Web (Configurações do projeto → Seus apps) para `mobile/.env`, a partir do `mobile/.env.example`:
+
+   ```bash
+   cd mobile
+   cp .env.example .env
+   ```
+
+   | Variável | Campo do `firebaseConfig` |
+   |---|---|
+   | `EXPO_PUBLIC_FIREBASE_API_KEY` | `apiKey` |
+   | `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN` | `authDomain` |
+   | `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | `projectId` |
+   | `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET` | `storageBucket` |
+   | `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
+   | `EXPO_PUBLIC_FIREBASE_APP_ID` | `appId` |
+
+Esses valores identificam o projeto e não são segredo (vão dentro do app), mas o `.env` não é versionado. Se faltar algum, o app abre numa tela "Configuração incompleta" dizendo qual.
+
+Os e-mails de confirmação, de redefinição de senha e de troca de e-mail são enviados pelo próprio Firebase, em português. Podem cair no spam.
 
 ## Como rodar
 
-### 1. Baixar o projeto
-
 ```bash
 git clone https://github.com/Schlieck/TCC.git
-cd TCC
-```
-
-Os arquivos `.env` não são versionados: em cada computador, crie os seus a partir dos `.env.example` (passos 3 e 4). O banco também é local, então contas e registros não passam de um computador para outro; o `npm run seed` gera os mesmos dados de teste em todos.
-
-### 2. Banco de dados
-
-No pgAdmin, crie dois bancos vazios com o seu usuário do Postgres como dono:
-
-- `shifty`: desenvolvimento
-- `shifty_test`: testes de integração (os testes apagam os dados dele a cada execução)
-
-O Knex cria as tabelas, mas não cria os bancos.
-
-### 3. Backend
-
-```bash
-cd backend
+cd TCC/mobile
 npm install
-cp .env.example .env      # preencha DB_USER, DB_PASSWORD e JWT_SECRET
-npm run migrate           # cria as tabelas no banco shifty
-npm run migrate:test      # cria as tabelas no banco shifty_test
-npm run seed              # opcional: usuário de teste e dados para os gráficos
+cp .env.example .env      # preencha com os dados do Firebase
 npm run dev
 ```
 
-`DB_PORT` é `5432` quando há só um PostgreSQL instalado. Com duas versões lado a lado, a segunda costuma ficar na `5433`; a porta de cada uma está no pgAdmin, nas propriedades do servidor.
+Abra o Expo Go no celular e escaneie o QR code mostrado no terminal. No emulador Android, use `npx expo start --android`; se o Expo Go não conectar, rode `adb reverse tcp:8081 tcp:8081` e abra `exp://127.0.0.1:8081`.
 
-Para gerar o `JWT_SECRET`, rode no terminal (em qualquer pasta) e cole a linha que aparecer depois de `JWT_SECRET=`, sem aspas:
+Não há usuário de teste pronto: crie uma conta com um e-mail que você consiga abrir, para clicar no link de confirmação.
 
-```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
-```
+## Gerar o APK de teste
 
-Ao subir, o servidor mostra no terminal a URL que o celular deve usar, por exemplo `EXPO_PUBLIC_API_URL=http://192.168.1.10:3333/api`.
-
-### 4. App
+O APK é gerado na nuvem pelo EAS Build (perfil `preview` do [mobile/eas.json](mobile/eas.json)), com uma conta no [expo.dev](https://expo.dev). Na pasta `mobile/`:
 
 ```bash
-cd mobile
-npm install
-cp .env.example .env      # coloque o IP do seu computador em EXPO_PUBLIC_API_URL
-npm run dev
+npx eas-cli@latest login
+npx eas-cli@latest init                       # só na primeira vez: liga o projeto à sua conta
+npx eas-cli@latest env:push preview --path .env
+npx eas-cli@latest build -p android --profile preview
 ```
 
-Abra o Expo Go no celular e escaneie o QR code mostrado no terminal.
+- O `eas init` grava o `extra.eas.projectId` no `app.json`; faça commit dessa mudança.
+- O EAS Build não envia o `.env` (ele é ignorado pelo git): o `env:push` copia as variáveis `EXPO_PUBLIC_FIREBASE_*` para o ambiente `preview` do EAS, que o perfil `preview` usa. Repita sempre que mudar o `.env`. Para conferir: `npx eas-cli@latest env:list preview`.
+- Ao fim do build, o terminal mostra um link e um QR code para baixar o APK. No celular, permita instalar apps de fontes desconhecidas.
 
-Para entrar sem criar conta, rode `npm run seed` no backend e use `teste@shifty.dev` / `Shifty123` (há meses de registros para os gráficos).
+## Scripts (em `mobile/`)
 
-## Códigos por e-mail em desenvolvimento
-
-O cadastro, a exclusão de conta e o "Esqueci a senha" pedem um código de 6 números enviado por e-mail. Com `EMAIL_DRIVER=console` (padrão), nenhum e-mail é enviado: o código aparece no terminal do backend, numa linha como `[e-mail simulado] Código 123456 (account_deletion) para ...`. Para enviar e-mails de verdade, use `EMAIL_DRIVER=smtp` e preencha as variáveis `SMTP_*` no `backend/.env`.
-
-## Por que não `localhost`?
-
-No Expo Go, o app roda **no celular**. Para o celular, `localhost` é o próprio celular, e não o seu computador. Por isso:
-
-- o backend escuta em `0.0.0.0` (todas as interfaces de rede), não só em `127.0.0.1`;
-- o app chama a API pelo **IP do computador na rede local**, definido em `EXPO_PUBLIC_API_URL` no arquivo `mobile/.env`.
-
-Para descobrir o IP no Windows, rode `ipconfig` e procure "Endereço IPv4" do adaptador conectado à rede (por exemplo, `192.168.1.10`). Se o roteador trocar o IP do computador, atualize o `mobile/.env` e reinicie o Expo com `npm run dev -- --clear`.
-
-Se o celular não conseguir conectar:
-
-1. Confirme que os dois aparelhos estão na mesma rede Wi-Fi (redes de visitante costumam isolar os aparelhos).
-2. Na primeira vez que o Node abrir a porta, o Firewall do Windows pergunta se deve liberar o acesso: permita em **redes privadas**. Confira também se a sua rede Wi-Fi está marcada como **privada** nas configurações do Windows.
-3. Abra `http://<IP>:3333/api/health` no navegador do celular. Se aparecer `{"status":"ok","database":"up"}`, a rede está funcionando.
-
-## Scripts
-
-| Backend | Mobile | O que faz |
-|---|---|---|
-| `npm run dev` | `npm run dev` | ambiente de desenvolvimento |
-| `npm run build` | `npm run build` | compila a API / gera o bundle Android (teste de fumaça) |
-| `npm run typecheck` | `npm run typecheck` | checagem de tipos |
-| `npm run lint` | `npm run lint` | ESLint |
-| `npm test` | `npm test` | testes (Vitest) |
-| `npm run migrate` | | aplica as migrations |
-| `npm run seed` | | popula o banco de desenvolvimento |
-
-Os testes de integração do backend usam o banco `shifty_test`. Rode `npm run test:unit` para executar só os testes que não precisam de banco.
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | ambiente de desenvolvimento (Expo) |
+| `npm run build` | gera o bundle Android localmente (teste de fumaça) |
+| `npm run typecheck` | checagem de tipos |
+| `npm run lint` | ESLint |
+| `npm test` | testes (Vitest) da lógica pura e do esquema do banco |
