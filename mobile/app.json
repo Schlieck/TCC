@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "br.edu.unochapeco.shifty",
       "adaptiveIcon": {
         "backgroundColor": "#333333",
         "foregroundImage": "./assets/android-icon-foreground.png",
