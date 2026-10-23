@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { listEmotions, type Emotion } from '../api';
 
-/** A lista de emoções é fixa no servidor; buscamos uma vez por sessão. */
+/** A lista de emoções é fixa no banco local; buscamos uma vez por sessão. */
 export function useEmotions() {
   return useQuery({ queryKey: ['emotions'], queryFn: listEmotions, staleTime: Infinity });
 }

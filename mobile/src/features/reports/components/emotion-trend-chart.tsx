@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { LineChart } from 'react-native-gifted-charts';
 import { chart, colors, emotionColor, fonts, radius, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
-import type { EmotionTrend } from '../api';
+import type { EmotionTrend } from '../emotion-trend';
 import { LABEL_FONT_SIZE, LABEL_SHIFT_X, placeDirectLabels } from '../direct-labels';
 import { bucketDescription, bucketLabel } from '../report-period';
 import { describeTrend, formatPercent, sortSeries } from '../trend-summary';

@@ -17,11 +17,7 @@ export function PrivacyConsentField<Values extends FieldValues>({
       control={control}
       name={name}
       render={({ field, fieldState }) => (
-        <Checkbox
-          checked={field.value}
-          onChange={field.onChange}
-          error={fieldState.error?.message}
-        >
+        <Checkbox checked={field.value} onChange={field.onChange} error={fieldState.error?.message}>
           <AppText variant="caption">{PRIVACY_CONSENT_TEXT}</AppText>
         </Checkbox>
       )}

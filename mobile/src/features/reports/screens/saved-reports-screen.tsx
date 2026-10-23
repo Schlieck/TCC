@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
-import { errorMessage } from '@/shared/api/errors';
+import { errorMessage } from '@/shared/errors';
 import { navigationStamp } from '@/shared/navigation';
 import { colors, radius, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';

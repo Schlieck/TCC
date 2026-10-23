@@ -1,5 +1,5 @@
 import { emotionRank } from '@/shared/theme';
-import type { EmotionTrend, EmotionTrendSeries } from './api';
+import type { EmotionTrend, EmotionTrendSeries } from './emotion-trend';
 
 /** Séries na ordem fixa das cores (a cor acompanha a emoção, não a posição). */
 export function sortSeries(series: readonly EmotionTrendSeries[]): EmotionTrendSeries[] {

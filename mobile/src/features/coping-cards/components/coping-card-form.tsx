@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
-import { applyApiError } from '@/shared/forms/apply-api-error';
+import { applyFormError } from '@/shared/forms/apply-form-error';
 import { FormTextField } from '@/shared/forms/form-text-field';
 import { useLeaveConfirmation } from '@/shared/forms/use-leave-confirmation';
 import { spacing } from '@/shared/theme';
@@ -44,7 +44,7 @@ export function CopingCardForm({ cardId, initialValues, onSaved }: CopingCardFor
       allowLeave();
       onSaved();
     } catch (error) {
-      setFormError(applyApiError(error, setError, ['name', 'description', 'groupId']));
+      setFormError(applyFormError(error, setError, ['name', 'description', 'groupId']));
     }
   });
 

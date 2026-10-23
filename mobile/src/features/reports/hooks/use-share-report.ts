@@ -1,9 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { useProfile } from '@/features/account/hooks/use-profile';
-import { errorMessage } from '@/shared/api/errors';
+import { errorMessage } from '@/shared/errors';
 import { todayIso } from '@/shared/dates';
 import { notify } from '@/shared/ui/confirm';
-import type { EmotionTrend } from '../api';
+import type { EmotionTrend } from '../emotion-trend';
 import { shareReportPdf } from '../pdf/share-report-pdf';
 
 /** Gera o PDF do relatório na tela, com o nome do paciente, para levar à consulta. */

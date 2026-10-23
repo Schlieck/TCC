@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
-import { applyApiError } from '@/shared/forms/apply-api-error';
+import { applyFormError } from '@/shared/forms/apply-form-error';
 import { FormTextField } from '@/shared/forms/form-text-field';
 import { useLeaveConfirmation } from '@/shared/forms/use-leave-confirmation';
 import { spacing } from '@/shared/theme';
@@ -15,7 +15,7 @@ import { useSaveThoughtRecord } from '../hooks/use-thought-records';
 import { thoughtRecordFormSchema, type ThoughtRecordFormValues } from '../validation';
 import { EmotionIntensityEditor } from './emotion-intensity-editor';
 
-const API_FIELDS = ['title', 'date', 'time', 'description', 'emotions'] as const;
+const FIELDS = ['title', 'date', 'time', 'description', 'emotions'] as const;
 
 interface ThoughtRecordFormProps {
   recordId?: number;
@@ -44,7 +44,7 @@ export function ThoughtRecordForm({ recordId, initialValues, onSaved }: ThoughtR
       allowLeave();
       onSaved();
     } catch (error) {
-      setFormError(applyApiError(error, setError, API_FIELDS));
+      setFormError(applyFormError(error, setError, FIELDS));
     }
   });
 

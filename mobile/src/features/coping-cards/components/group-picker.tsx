@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { errorMessage } from '@/shared/api/errors';
+import { errorMessage } from '@/shared/errors';
 import { colors, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { Button } from '@/shared/ui/button';

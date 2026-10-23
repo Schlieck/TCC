@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import { errorMessage } from '@/shared/api/errors';
+import { errorMessage } from '@/shared/errors';
 import { formatLongDate } from '@/shared/dates';
 import { colors, emotionColor, radius, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';

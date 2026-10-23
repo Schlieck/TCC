@@ -11,24 +11,19 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
-import { ApiError } from '@/shared/api/errors';
-import { apiConfig } from '@/shared/config/api-config';
 import { firebaseConfig } from '@/shared/config/firebase-config';
 import { colors } from '@/shared/theme';
 import { ConfigErrorScreen } from '@/shared/ui/config-error-screen';
 
 void SplashScreen.preventAutoHideAsync();
 
-const MAX_RETRIES = 2;
-
 function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
         staleTime: 30_000,
-        // Erros 4xx (sessão, validação, não encontrado) não melhoram tentando de novo.
-        retry: (failureCount, error) =>
-          !(error instanceof ApiError && error.status < 500) && failureCount < MAX_RETRIES,
+        // Os dados são locais: um erro do banco não melhora tentando de novo.
+        retry: false,
       },
     },
   });
@@ -68,9 +63,6 @@ function RootNavigator() {
   }
   if (!firebaseConfig.ok) {
     return <ConfigErrorScreen message={firebaseConfig.message} />;
-  }
-  if (!apiConfig.ok) {
-    return <ConfigErrorScreen message={apiConfig.message} />;
   }
 
   return (

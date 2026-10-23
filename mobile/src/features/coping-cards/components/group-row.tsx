@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { errorMessage } from '@/shared/api/errors';
+import { errorMessage } from '@/shared/errors';
 import { colors, radius, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
 import { confirm, notify } from '@/shared/ui/confirm';

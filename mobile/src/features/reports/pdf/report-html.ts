@@ -1,6 +1,6 @@
 import { formatDate } from '@/shared/dates';
 import { emotionPrintColors, fallbackEmotionColor, print } from '@/shared/theme';
-import type { EmotionTrend, EmotionTrendSeries } from '../api';
+import type { EmotionTrend, EmotionTrendSeries } from '../emotion-trend';
 import { bucketDescription, bucketLabel } from '../report-period';
 import { averageOf, formatPercent, sortSeries } from '../trend-summary';
 

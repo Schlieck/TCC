@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { EmotionTrend } from './api';
+import type { EmotionTrend } from './emotion-trend';
 import { averageOf, describeTrend, formatPercent, sortSeries } from './trend-summary';
 
 const trend: EmotionTrend = {

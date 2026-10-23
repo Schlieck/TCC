@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { chart, colors, radius, spacing } from '@/shared/theme';
 import { AppText } from '@/shared/ui/app-text';
-import type { EmotionTrend } from '../api';
+import type { EmotionTrend } from '../emotion-trend';
 import { bucketDescription } from '../report-period';
 import { formatPercent, sortSeries } from '../trend-summary';
 
