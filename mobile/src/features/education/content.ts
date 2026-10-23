@@ -1,5 +1,5 @@
 /**
- * Conteúdo educativo da aba "Aprenda!" (Figura 10), local no app e sem backend.
+ * Conteúdo educativo da aba "Aprenda!" (Figura 10), fixo no app.
  * Textos curtos baseados no capítulo 2 do relatório do TCC e em Beck (2014).
  * Cada tópico está marcado com TODO: revisar — revisar com o orientador antes dos testes.
  */

@@ -48,7 +48,7 @@ export const fontSize = {
 } as const;
 
 /**
- * Uma cor fixa por emoção (slug da API): a cor acompanha a emoção, nunca a posição na lista.
+ * Uma cor fixa por emoção (pelo slug): a cor acompanha a emoção, nunca a posição na lista.
  * Paleta categórica de referência (variante escura), validada para daltonismo e contraste
  * >= 3:1 sobre `chart.surface`. A ordem abaixo é a ordem validada dos tons e a da legenda.
  */

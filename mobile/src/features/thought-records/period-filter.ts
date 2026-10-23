@@ -11,7 +11,7 @@ export const PERIOD_PRESET_LABELS: Record<PeriodPreset, string> = {
   custom: 'Escolher datas',
 };
 
-/** Período a pedir para a API; `undefined` significa "sem filtro". */
+/** Período a buscar no banco local; `undefined` significa "sem filtro". */
 export function periodForPreset(
   preset: PeriodPreset,
   today: string,
