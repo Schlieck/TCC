@@ -128,8 +128,10 @@ const styles = StyleSheet.create({
   container: {
     gap: spacing.sm,
   },
+  // Sem flexShrink a lista longa espreme a faixa de filtros e corta os chips.
   filters: {
     flexGrow: 0,
+    flexShrink: 0,
   },
   chips: {
     flexDirection: 'row',

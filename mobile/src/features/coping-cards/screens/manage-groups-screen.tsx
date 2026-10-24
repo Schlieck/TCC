@@ -26,6 +26,7 @@ export function ManageGroupsScreen() {
           data={groups.data}
           keyExtractor={(group) => String(group.id)}
           contentContainerStyle={styles.list}
+          keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => <GroupRow group={item} />}
           ListEmptyComponent={<EmptyState message="Você ainda não tem grupos." />}
         />
