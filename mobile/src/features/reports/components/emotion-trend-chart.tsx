@@ -126,6 +126,22 @@ export function EmotionTrendChart({ trend, highlighted }: EmotionTrendChartProps
     });
   }, [drawOrder, series, labels, emphasis, step]);
 
+  const selectedIndex = selection?.trend === trend ? selection.index : null;
+  const selectedBucket = selectedIndex === null ? undefined : trend.buckets[selectedIndex];
+
+  // A biblioteca só traça as linhas ao montar (o efeito delas não depende de dataSet): dados novos
+  // ou outra ordem de desenho deixariam linhas de outro gráfico. Remontar resolve; o ponteiro volta
+  // pelo initialPointerIndex.
+  const chartKey = useMemo(
+    () =>
+      JSON.stringify([
+        trend.granularity,
+        trend.period,
+        drawOrder.map((entry) => [entry.emotion.id, entry.values]),
+      ]),
+    [trend, drawOrder],
+  );
+
   const pointerConfig = useMemo(
     () => ({
       pointerStripColor: chart.axis,
@@ -133,19 +149,16 @@ export function EmotionTrendChart({ trend, highlighted }: EmotionTrendChartProps
       pointerColorsForDataSet: drawOrder.map((entry) => lineColor(entry.emotion, emphasis)),
       radius: 5,
       persistPointer: true,
+      initialPointerIndex: selectedIndex ?? -1,
     }),
-    [drawOrder, emphasis],
+    [drawOrder, emphasis, selectedIndex],
   );
-
-  const selectedIndex = selection?.trend === trend ? selection.index : null;
-  const selectedBucket = selectedIndex === null ? undefined : trend.buckets[selectedIndex];
 
   return (
     <View>
       <View accessible accessibilityRole="image" accessibilityLabel={describeTrend(trend)}>
         <LineChart
-          // Remonta ao trocar de período para o ponteiro não ficar num intervalo de outro gráfico.
-          key={`${trend.granularity}:${trend.period.from}:${trend.period.to}`}
+          key={chartKey}
           dataSet={dataSet}
           height={CHART_HEIGHT}
           width={plotWidth}
