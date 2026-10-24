@@ -47,6 +47,14 @@ export function useSaveThoughtRecord(recordId?: number) {
 }
 
 export function useDeleteThoughtRecord() {
+  const queryClient = useQueryClient();
   const invalidate = useInvalidateRecords();
-  return useMutation({ mutationFn: deleteRecord, onSuccess: invalidate });
+  return useMutation({
+    mutationFn: deleteRecord,
+    // Recarregar o detalhe excluído daria "não encontrado" e desmontaria a tela antes de ela voltar.
+    onSuccess: (_, id) => {
+      queryClient.removeQueries({ queryKey: thoughtRecordKeys.detail(id) });
+      return invalidate();
+    },
+  });
 }
